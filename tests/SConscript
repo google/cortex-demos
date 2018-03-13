@@ -1,0 +1,13 @@
+Import('env')
+
+test_env = env.Clone()
+test_env.AppendUnique(
+        CPPPATH=['../src', '.'],
+        LIBPATH=['../src'])
+
+test_core = test_env.Object('mock_memio.cpp')
+test_objs = test_env.Object(Glob('*_test.cpp'))
+
+run_all_tests = test_env.Program(
+        target='run_all_tests',
+        source=['test_runner.cpp'] + test_objs + test_core)
