@@ -2,6 +2,29 @@
 
 #include "catch.hpp"
 
-TEST_CASE("Test Tests Run") {
-    REQUIRE(1 == 1);
+TEST_CASE("Test Basic Memory RW") {
+    mock::Memory mem;
+
+    constexpr auto value32 = 0xdeadbeef;
+    constexpr auto test_addr = 0x40000000;
+
+    CHECK(mem.read32(test_addr) == 0);
+    CHECK(mem.read16(test_addr) == 0);
+    CHECK(mem.read8(test_addr) == 0);
+    mem.write32(test_addr, value32);
+    CHECK(mem.read32(test_addr) == value32);
+
+    // NOTE: This assumes Little Endian platform
+    CHECK(mem.read16(test_addr) == (value32 & 0xffff));
+    CHECK(mem.read16(test_addr + 2) == (value32 >> 16));
+
+    CHECK(mem.read8(test_addr) == (value32 & 0xff));
+    CHECK(mem.read8(test_addr + 1) == ((value32 >> 8) & 0xff));
+    CHECK(mem.read8(test_addr + 2) == ((value32 >> 16) & 0xff));
+    CHECK(mem.read8(test_addr + 3) == ((value32 >> 24) & 0xff));
+
+    mem.write16(test_addr, 0xcafe);
+
+    constexpr auto test_value2 = (value32 & (~0xffff)) | 0xcafe;
+    CHECK(mem.read32(test_addr) == test_value2);
 }
