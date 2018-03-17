@@ -28,3 +28,18 @@ TEST_CASE("Test Basic Memory RW") {
     constexpr auto test_value2 = (value32 & (~0xffff)) | 0xcafe;
     CHECK(mem.read32(test_addr) == test_value2);
 }
+
+TEST_CASE("Test Memory Journal") {
+    mock::Memory mem;
+
+    constexpr auto test_addr = 0x2000 * 0x10000;
+    CHECK(mem.read16(0x20000000) == 0);
+
+    const auto& journal = mem.get_journal();
+    const auto entry_it = std::find_if(journal.begin(), journal.end(),
+            [](const mock::Memory::JournalT::value_type& entry) {
+                return std::get<0>(entry) == mock::Memory::Op::READ16;
+            });
+
+    CHECK(entry_it != journal.end());
+}

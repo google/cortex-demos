@@ -2,11 +2,27 @@
 
 #include <cstdint>
 #include <map>
+#include <tuple>
+#include <vector>
 
 namespace mock {
 
 class Memory {
     public:
+        enum class Op {
+            READ8,
+            READ16,
+            READ32,
+            WRITE8,
+            WRITE16,
+            WRITE32,
+        };
+
+        using JournalEntry = std::tuple<Op, uint32_t, uint32_t>;
+        using JournalT = std::vector<JournalEntry>;
+
+        const JournalT& get_journal() const;
+
         uint32_t read32(uint32_t addr) const;
         uint16_t read16(uint32_t addr) const;
         uint8_t read8(uint32_t addr) const;
@@ -20,6 +36,7 @@ class Memory {
 
     private:
         std::map<uint32_t, uint32_t> mem_map_;
+        mutable JournalT journal_;
 };
 
 }  // namespace
