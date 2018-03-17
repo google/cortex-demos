@@ -63,4 +63,9 @@ const Memory::JournalT& Memory::get_journal() const {
     return journal_;
 }
 
+void Memory::reset() {
+    mem_map_.clear();
+    journal_.clear();
+}
+
 }  // namespace mock

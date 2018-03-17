@@ -23,6 +23,8 @@ class Memory {
 
         const JournalT& get_journal() const;
 
+        void reset();
+
         uint32_t read32(uint32_t addr) const;
         uint16_t read16(uint32_t addr) const;
         uint8_t read8(uint32_t addr) const;

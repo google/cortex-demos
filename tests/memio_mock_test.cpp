@@ -27,6 +27,9 @@ TEST_CASE("Test Basic Memory RW") {
 
     constexpr auto test_value2 = (value32 & (~0xffff)) | 0xcafe;
     CHECK(mem.read32(test_addr) == test_value2);
+
+    mem.reset();
+    CHECK(mem.read32(test_addr) == 0);
 }
 
 TEST_CASE("Test Memory Journal") {
