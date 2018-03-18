@@ -1,3 +1,4 @@
 *.o
 .sconsign.dblite
 run_all_tests
+*.a
