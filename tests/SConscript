@@ -1,3 +1,4 @@
+import os.path
 Import('env')
 
 test_env = env.Clone()
@@ -10,6 +11,10 @@ test_env.AppendUnique(
 test_core = test_env.Object('mock_memio.cpp')
 test_objs = test_env.Object(Glob('*_test.cpp'))
 
+test_files = [os.path.join('..', 'src', f) for f in 'syscontrol.c'.split()]
+
+lib_under_test = test_env.StaticLibrary(test_files)
+
 run_all_tests = test_env.Program(
         target='run_all_tests',
-        source=['test_runner.cpp'] + test_objs + test_core)
+        source=['test_runner.cpp'] + test_objs + test_core + lib_under_test)

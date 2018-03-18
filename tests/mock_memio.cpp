@@ -74,6 +74,14 @@ uint8_t Memory::read8(uint32_t addr) const {
     return res;
 }
 
+void Memory::set_value_at(uint32_t addr, uint32_t value) {
+    mem_map_[addr] = value;
+}
+
+uint32_t Memory::get_value_at(uint32_t addr) {
+    return mem_map_[addr];
+}
+
 const Memory::JournalT& Memory::get_journal() const {
     return journal_;
 }

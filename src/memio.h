@@ -9,6 +9,8 @@
 #   define raw_read8(addr)     *((volatile uint8_t*)(addr))
 #else
 
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
