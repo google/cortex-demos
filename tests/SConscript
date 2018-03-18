@@ -3,7 +3,9 @@ Import('env')
 test_env = env.Clone()
 test_env.AppendUnique(
         CPPPATH=['../src', '.'],
-        LIBPATH=['../src'])
+        LIBPATH=['../src'],
+        CPPDEFINES=['TEST_MEMIO'],
+        )
 
 test_core = test_env.Object('mock_memio.cpp')
 test_objs = test_env.Object(Glob('*_test.cpp'))

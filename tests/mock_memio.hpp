@@ -41,4 +41,6 @@ class Memory {
         mutable JournalT journal_;
 };
 
+Memory& get_global_memory();
+
 }  // namespace

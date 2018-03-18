@@ -2,6 +2,21 @@
 
 namespace mock {
 
+namespace {
+
+mock::Memory g_memory;
+
+extern "C" void raw_write32(uint32_t addr, uint32_t value) {
+    g_memory.write32(addr, value);
+}
+
+extern "C" uint32_t raw_read32(uint32_t addr) {
+    return g_memory.read32(addr);
+}
+
+}  // namespace
+
+
 void Memory::write32(uint32_t addr, uint32_t value) {
     journal_.push_back(std::make_tuple(Memory::Op::WRITE32, addr, value));
     mem_map_[addr] = value;
@@ -66,6 +81,10 @@ const Memory::JournalT& Memory::get_journal() const {
 void Memory::reset() {
     mem_map_.clear();
     journal_.clear();
+}
+
+Memory& get_global_memory() {
+    return g_memory;
 }
 
 }  // namespace mock
