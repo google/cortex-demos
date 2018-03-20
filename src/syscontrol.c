@@ -6,6 +6,7 @@
 
 void syscontrol_relocate_vt(uint32_t new_addr, unsigned num_vectors) {
     uint32_t old_location = raw_read32(SCB_VTOR);
+    /* FIXME: this does not check the alignment */
     /* Adjust for the stack top location */
     ++num_vectors;
     for (uint32_t addr = new_addr; num_vectors > 0; --num_vectors, addr += 4, old_location += 4) {
