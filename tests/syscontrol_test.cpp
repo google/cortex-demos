@@ -20,4 +20,9 @@ TEST_CASE("Test Vector Table relocation") {
     mem.set_value_at(old_location + 8, 0x00aa00aa);
 
     syscontrol_relocate_vt(new_location, 2);
+    auto vt_location = mem.get_value_at(vtor_addr);
+    CHECK(vt_location == new_location);
+    CHECK(mem.get_value_at(new_location) == 0xaa55aa55);
+    CHECK(mem.get_value_at(new_location + 4) == 0x55aa55aa);
+    CHECK(mem.get_value_at(new_location + 8) == 0x00aa00aa);
 }
