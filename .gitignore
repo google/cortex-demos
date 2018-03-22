@@ -3,3 +3,6 @@
 run_all_tests
 *.a
 *.pyc
+*.elf
+*.hex
+*.bin
