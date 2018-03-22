@@ -6,7 +6,11 @@ extern funcp_t __fini_array_start, __fini_array_end;
 
 void main(void);
 
-void __attribute__ ((weak, naked, section(".reset"))) os_reset_handler(void)
+void
+#ifndef CHIP_NATIVETEST
+__attribute__ ((weak, naked, section(".reset")))
+#endif
+os_reset_handler(void)
 {
 	volatile unsigned *src, *dest;
 	funcp_t *fp;

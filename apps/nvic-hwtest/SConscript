@@ -1,0 +1,5 @@
+Import('hwenv')
+Import('demos_lib')
+
+hwenv.AppendUnique(LINKFLAGS='-T%s_xip.ld' % hwenv['CHIP'])
+hwenv.Program(target='nvic_test.elf', source=['main.c'] + demos_lib)

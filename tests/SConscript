@@ -1,17 +1,6 @@
 import os.path
 Import('env')
 
-def src_path(*args):
-    if args:
-        return os.path.join('..', 'src', *args)
-
-    return os.path.join('..', 'src')
-
-def c_test_object(env, filename):
-    target_name = filename.replace('.c', '_nativetest.o')
-    return env.Object(target=target_name, source=filename)
-
-
 test_env = env.Clone()
 
 test_core = test_env.Object('mock_memio.cpp')
