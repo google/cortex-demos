@@ -1,0 +1,23 @@
+Import('hwenv')
+
+def demos_obj(env, srcname):
+    suffix = None
+    if srcname.endswith('.c'):
+        suffix = '.c'
+    if srcname.endswith('.cpp'):
+        suffix = '.cpp'
+
+    return env.Object(
+            target=srcname.replace(suffix, '_%s.o' % env['CHIP'].lower()),
+            source=srcname)
+
+sources = Split(
+        'nvic.c '
+        'os_startup.c '
+        'syscontrol.c '
+        )
+
+objects = [demos_obj(hwenv, s) for s in sources]
+
+demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
+Return('demos_lib')

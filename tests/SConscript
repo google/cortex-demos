@@ -7,22 +7,16 @@ def src_path(*args):
 
     return os.path.join('..', 'src')
 
-test_env = env.Clone()
-test_env.AppendUnique(
-        CPPPATH=[src_path(), '.'],
-        LIBPATH=[src_path()],
-        CPPDEFINES=['TEST_MEMIO'],
-        )
+def c_test_object(env, filename):
+    target_name = filename.replace('.c', '_nativetest.o')
+    return env.Object(target=target_name, source=filename)
 
-test_env.AppendUnique(CPPPATH=[src_path('chip-nativetest')])
+
+test_env = env.Clone()
 
 test_core = test_env.Object('mock_memio.cpp')
 test_objs = test_env.Object(Glob('*_test.cpp'))
 
-test_files = [src_path(f) for f in 'syscontrol.c nvic.c'.split()]
-
-lib_under_test = test_env.StaticLibrary(test_files)
-
 run_all_tests = test_env.Program(
         target='run_all_tests',
-        source=['test_runner.cpp'] + test_objs + test_core + lib_under_test)
+        source=['test_runner.cpp'] + test_objs + test_core)
