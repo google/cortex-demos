@@ -21,8 +21,18 @@ typedef void (*irq_handler_func_t)(void);
 extern "C" {
 #endif
 
+void nvic_init(void);
+
 int nvic_set_handler(int irqn, irq_handler_func_t handler_func);
 int nvic_dispatch(int irqn);
+
+/** Set Off given interrupt
+ *
+ * @param[irqn] Interrupt number
+ *
+ * @returns 0 on success, <0 on error
+ */
+int nvic_irqset(int irqn);
 
 #ifdef __cplusplus
 }  /* extern "C" */
