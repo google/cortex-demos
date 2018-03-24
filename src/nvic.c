@@ -24,7 +24,7 @@
 #define NVIC_ISPR_BASE      (0xe000e200)
 #define NVIC_ISPR(n)      (NVIC_ISPR_BASE + (n) * 4)
 
-static irq_handler_func_t vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
+static irq_handler_func_t __attribute__((aligned(CHIP_IRQ_TABLE_ALIGN))) vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
 
 void nvic_init(void) {
     /* Only relocate top of the stack and reset handler */
