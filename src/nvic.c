@@ -15,6 +15,14 @@
 #define SCB_ICSR_PENDSTSET      (1 << 26)
 #define SCB_ICSR_PENDSTCLR      (1 << 25)
 
+#define NVIC_IRQ_MASK(irq)    (1 << ((irq) & 0x1f))
+#define NVIC_IRQ_REGN(irq)     ((irq) >> 5)
+
+#define NVIC_ISER_BASE      (0xe000e100)
+#define NVIC_ISER(n)        (NVIC_ISER_BASE + (n) * 4)
+
+#define NVIC_ISPR_BASE      (0xe000e200)
+#define NVIC_ISPR(n)      (NVIC_ISPR_BASE + (n) * 4)
 
 static irq_handler_func_t vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
 
@@ -63,6 +71,8 @@ int nvic_irqset(int irqn) {
         } else {
             return -1;
         }
+    } else {
+        raw_write32(NVIC_ISPR(NVIC_IRQ_REGN(irqn)), NVIC_IRQ_MASK(irqn));
     }
 
     return -1;
@@ -78,4 +88,8 @@ void nvic_disable_irqs() {
 #ifndef CHIP_NATIVETEST
     __asm__ ("cpsid i");
 #endif
+}
+
+void nvic_enable_irq(int irqn) {
+    raw_write32(NVIC_ISER(NVIC_IRQ_REGN(irqn)), NVIC_IRQ_MASK(irqn));
 }

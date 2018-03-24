@@ -10,6 +10,17 @@ static void intr_handler() {
     counter++;
 }
 
+TEST_CASE("Test IRQ attributes setting") {
+    constexpr uint32_t nvic_iser = 0xe000e100;
+    auto& mem = mock::get_global_memory();
+    mem.reset();
+
+    nvic_enable_irq(12);
+    CHECK((mem.get_value_at(nvic_iser) & (1 << 12)) > 0);
+    nvic_enable_irq(32);
+    CHECK((mem.get_value_at(nvic_iser + 4) & (1 << 0)) > 0);
+}
+
 TEST_CASE("Test NVIC Init") {
     constexpr uint32_t vtor_addr = 0xe000ed08;
     auto& mem = mock::get_global_memory();
@@ -41,5 +52,11 @@ TEST_CASE("Test Setting Off Interrupts") {
         CHECK((mem.get_value_at(icsr_addr) & (1 << 28)) > 0);
         nvic_irqset(IRQ_SYSTICK);
         CHECK((mem.get_value_at(icsr_addr) & (1 << 26)) > 0);
+    }
+
+    SECTION("Test setting off IRQs") {
+        constexpr uint32_t nvic_ispr = 0xe000e200;
+        nvic_irqset(1);
+        CHECK((mem.get_value_at(nvic_ispr) & (1 << 1)) > 0);
     }
 }
