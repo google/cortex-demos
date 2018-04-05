@@ -2,6 +2,34 @@
 
 #include "catch.hpp"
 
+namespace {
+
+class BitFlipStub : public mock::IOHandlerStub {
+    public:
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
+            (void)addr;
+            (void)old_value;
+            return ~new_value;
+        }
+};
+
+}  // namespace
+
+TEST_CASE("Test Memory IO stubbing") {
+    mock::Memory mem;
+
+    SECTION("Setting handler for a single address") {
+        constexpr uint32_t test_addr = 0x10000000;
+
+        BitFlipStub bit_flipper;
+        mem.set_addr_io_handler(test_addr, &bit_flipper);
+
+        constexpr uint32_t test_value = 0xdeadbeef;
+        mem.write32(test_addr, test_value);
+        CHECK(mem.get_value_at(test_addr) == (~test_value));
+    }
+}
+
 TEST_CASE("Test Basic Memory RW") {
     mock::Memory mem;
 
