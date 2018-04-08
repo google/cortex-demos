@@ -123,4 +123,12 @@ Memory& get_global_memory() {
     return g_memory;
 }
 
+void IOHandlerStub::set_mem_value(uint32_t addr, uint32_t value) {
+    mem_->set_value_at(addr, value);
+}
+
+uint32_t IOHandlerStub::get_mem_value(uint32_t addr) const {
+    return mem_->get_value_at(addr, 0);
+}
+
 }  // namespace mock

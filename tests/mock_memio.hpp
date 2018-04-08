@@ -26,8 +26,41 @@ class IOHandlerStub {
             mem_ = mem;
         }
 
+    protected:
+        void set_mem_value(uint32_t addr, uint32_t value);
+        uint32_t get_mem_value(uint32_t addr) const;
+
     private:
         Memory* mem_;
+};
+
+class RegSetClearStub : public IOHandlerStub {
+    public:
+        RegSetClearStub(uint32_t addr, uint32_t set_addr, uint32_t clr_addr) :
+            rw_addr_{addr}, set_addr_{set_addr}, clr_addr_{clr_addr} {}
+
+        virtual uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
+            if (addr == set_addr_) {
+                return (old_value | new_value);
+            } else if (addr == clr_addr_) {
+                return (old_value & ~new_value);
+            }
+
+            return new_value;
+        }
+
+        virtual uint32_t read32(uint32_t addr, uint32_t value) {
+            if (addr == set_addr_ || addr == clr_addr_) {
+                return get_mem_value(rw_addr_);
+            }
+
+            return value;
+        }
+
+    private:
+        const uint32_t rw_addr_;
+        const uint32_t set_addr_;
+        const uint32_t clr_addr_;
 };
 
 class Memory {
