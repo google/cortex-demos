@@ -18,15 +18,29 @@ class BitFlipStub : public mock::IOHandlerStub {
 TEST_CASE("Test Memory IO stubbing") {
     mock::Memory mem;
 
+    BitFlipStub bit_flipper;
+
     SECTION("Setting handler for a single address") {
         constexpr uint32_t test_addr = 0x10000000;
 
-        BitFlipStub bit_flipper;
         mem.set_addr_io_handler(test_addr, &bit_flipper);
 
         constexpr uint32_t test_value = 0xdeadbeef;
         mem.write32(test_addr, test_value);
         CHECK(mem.get_value_at(test_addr) == (~test_value));
+    }
+
+    SECTION("Setting handler for a range") {
+        constexpr uint32_t range_start = 0x100;
+        constexpr uint32_t range_end = 0x200;
+
+        mem.set_addr_io_handler(range_start, range_end, &bit_flipper);
+
+        constexpr uint32_t test_value = 0xdecafbad;
+        constexpr auto write_addr = range_start + 4 * 10;
+        static_assert(write_addr < range_end, "Invalid test value");
+        mem.write32(write_addr, 0xdecafbad);
+        CHECK(mem.get_value_at(write_addr) == (~test_value));
     }
 }
 

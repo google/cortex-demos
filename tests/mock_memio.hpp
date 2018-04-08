@@ -7,6 +7,8 @@
 
 namespace mock {
 
+class Memory;
+
 class IOHandlerStub {
     public:
         virtual uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
@@ -19,6 +21,13 @@ class IOHandlerStub {
             (void)addr;
             return value;
         }
+
+        void set_memory(Memory* mem) {
+            mem_ = mem;
+        }
+
+    private:
+        Memory* mem_;
 };
 
 class Memory {
@@ -49,8 +58,10 @@ class Memory {
 
         void set_value_at(uint32_t addr, uint32_t value);
         uint32_t get_value_at(uint32_t addr);
+        uint32_t get_value_at(uint32_t addr, uint32_t default_value);
 
         void set_addr_io_handler(uint32_t addr, IOHandlerStub* io_handler);
+        void set_addr_io_handler(uint32_t range_start, uint32_t range_end, IOHandlerStub* io_handler);
 
     private:
         void priv_write32(uint32_t addr, uint32_t value);

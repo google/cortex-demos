@@ -19,11 +19,7 @@ extern "C" uint32_t raw_read32(uint32_t addr) {
 void Memory::priv_write32(uint32_t addr, uint32_t value) {
     const auto& it = addr_handler_map_.find(addr);
     if (it != addr_handler_map_.end()) {
-        uint32_t old_value = 0;
-        const auto& old_it = mem_map_.find(addr);
-        if (old_it != mem_map_.end()) {
-            old_value = old_it->second;
-        }
+        uint32_t old_value = get_value_at(addr, 0);
         mem_map_[addr] = it->second->write32(addr, old_value, value);
     } else {
         mem_map_[addr] = value;
@@ -92,6 +88,16 @@ uint32_t Memory::get_value_at(uint32_t addr) {
     return mem_map_[addr];
 }
 
+uint32_t Memory::get_value_at(uint32_t addr, uint32_t default_value) {
+    auto result = default_value;
+    const auto& it = mem_map_.find(addr);
+    if (it != mem_map_.end()) {
+        result = it->second;
+    }
+
+    return result;
+}
+
 const Memory::JournalT& Memory::get_journal() const {
     return journal_;
 }
@@ -103,6 +109,14 @@ void Memory::reset() {
 
 void Memory::set_addr_io_handler(uint32_t addr, IOHandlerStub* io_handler) {
     addr_handler_map_.insert(std::make_pair(addr, io_handler));
+    io_handler->set_memory(this);
+}
+
+void Memory::set_addr_io_handler(uint32_t range_start, uint32_t range_end, IOHandlerStub* io_handler) {
+    for (auto addr = range_start; addr < range_end; addr += sizeof(addr)) {
+        addr_handler_map_.insert(std::make_pair(addr, io_handler));
+    }
+    io_handler->set_memory(this);
 }
 
 Memory& get_global_memory() {
