@@ -40,13 +40,19 @@ class RegSetClearStub : public IOHandlerStub {
             rw_addr_{addr}, set_addr_{set_addr}, clr_addr_{clr_addr} {}
 
         virtual uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
+            auto write_value = new_value;
             if (addr == set_addr_) {
-                return (old_value | new_value);
+                write_value = (old_value | new_value);
             } else if (addr == clr_addr_) {
-                return (old_value & ~new_value);
+                write_value = (old_value & (~new_value));
             }
 
-            return new_value;
+            if (addr != rw_addr_) {
+                set_mem_value(rw_addr_, write_value);
+                set_mem_value(set_addr_, write_value);
+                set_mem_value(clr_addr_, write_value);
+            }
+            return write_value;
         }
 
         virtual uint32_t read32(uint32_t addr, uint32_t value) {
