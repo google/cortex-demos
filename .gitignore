@@ -1,6 +1,6 @@
 *.o
 .sconsign.dblite
-run_all_tests
+run_*_tests
 *.a
 *.pyc
 *.elf

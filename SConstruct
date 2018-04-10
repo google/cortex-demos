@@ -9,7 +9,7 @@ env = Environment(
         CPPPATH = ['.', '#/src'],
         )
 
-supported_chips = 'nrf52 nativetest'.split()
+supported_chips = 'nrf52'.split()
 if 'DEMOS_CHIP' in os.environ:
     CHIP = os.environ['DEMOS_CHIP']
 else:
@@ -30,17 +30,26 @@ hwenv.AppendUnique(
             '-Wl,--gc-sections',
             ]
         )
+
+native_env = env.Clone()
+native_env.AppendUnique(
+        CPPPATH='#/src/chip-nativetest',
+        CPPDEFINES=['TEST_MEMIO', 'CHIP_NATIVETEST'],
+        )
 for chip in supported_chips:
+
     chip_hwenv = hwenv.Clone()
     chip_hwenv['CHIP'] = chip
     chipconf.configure_chip(chip_hwenv, chip)
     chip_hwenv.AppendUnique(CPPPATH='#/src/chip-%s' % chip, CPPDEFINES=['CHIP_%s' % chip.upper()])
 
-    demos_lib = SConscript('src/SConscript', exports=dict(hwenv=chip_hwenv))
+    demos_lib = SConscript('src/SConscript',
+            exports=dict(hwenv=chip_hwenv, native_env=native_env))
+
     if chip != 'nativetest':
         SConscript('apps/nvic-hwtest/SConscript', exports=dict(hwenv=chip_hwenv, demos_lib=demos_lib))
 
-test_env = env.Clone()
-test_env.AppendUnique(LIBS='demos_nativetest', CPPPATH='#/src/chip-nativetest',
-        LIBPATH='#/src', CPPDEFINES=['TEST_MEMIO'])
-run_all_tests = SConscript('tests/SConscript', exports=dict(env=test_env))
+test_env = native_env.Clone()
+test_env.AppendUnique(LIBPATH='#/src')
+
+run_all_tests = SConscript('tests/SConscript', exports=dict(env=test_env, supported_chips=supported_chips))

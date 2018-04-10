@@ -1,23 +1,35 @@
 Import('hwenv')
+Import('native_env')
 
-def demos_obj(env, srcname):
+def demos_obj(env, src, lib_suffix=None):
+    lib_suffix = lib_suffix or env['CHIP'].lower()
     suffix = None
+
+    srcname = src
+    if (hasattr(src, 'get_abspath')):
+        srcname = src.get_abspath()
+
     if srcname.endswith('.c'):
         suffix = '.c'
     if srcname.endswith('.cpp'):
         suffix = '.cpp'
 
     return env.Object(
-            target=srcname.replace(suffix, '_%s.o' % env['CHIP'].lower()),
+            target=srcname.replace(suffix, '_%s.o' % lib_suffix),
             source=srcname)
+
+chip_sources = hwenv.Glob('chip-%s/*.c' % hwenv['CHIP'].lower())
 
 sources = Split(
         'nvic.c '
         'os_startup.c '
         'syscontrol.c '
-        )
+        ) + chip_sources
 
 objects = [demos_obj(hwenv, s) for s in sources]
-
 demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
+
+native_objects = [demos_obj(native_env, s, lib_suffix='native') for s in sources]
+native_env.StaticLibrary(target='demos_%s_native' % hwenv['CHIP'], source=native_objects)
+
 Return('demos_lib')

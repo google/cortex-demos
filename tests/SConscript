@@ -1,11 +1,15 @@
 import os.path
 Import('env')
+Import('supported_chips')
 
 test_env = env.Clone()
 
 test_core = test_env.Object('mock_memio.cpp')
-test_objs = test_env.Object(Glob('*_test.cpp'))
+common_tests = Split('memio_test.cpp memio_mock_test.cpp syscontrol_test.cpp nvic_test.cpp')
 
-run_all_tests = test_env.Program(
-        target='run_all_tests',
-        source=['test_runner.cpp'] + test_objs + test_core)
+for chip in supported_chips:
+    chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
+    run_chip_tests = test_env.Program(
+            LIBS='demos_%s_native' % chip,
+            target='run_%s_tests' % chip,
+            source=['test_runner.cpp'] + chip_test_objs + common_tests + test_core)

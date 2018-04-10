@@ -65,6 +65,8 @@ class RegSetClearStub : public IOHandlerStub {
 
 class Memory {
     public:
+        Memory() = default;
+        Memory(const Memory& ) = delete;
         enum class Op {
             READ8,
             READ16,
