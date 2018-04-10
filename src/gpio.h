@@ -29,6 +29,12 @@ int gpio_clear(uint32_t port, uint32_t mask);
  */
 int gpio_toggle(uint32_t port, uint32_t mask);
 
+/** Return GPIO values in the given port
+ *
+ * @param[port] GPIO port to read
+ */
+int gpio_get(uint32_t port);
+
 #ifdef __cplusplus
 }
 #endif

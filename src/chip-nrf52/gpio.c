@@ -5,6 +5,7 @@
 #define GPIO_OUT        (GPIO_BASE + 0x504)
 #define GPIO_OUTSET        (GPIO_BASE + 0x508)
 #define GPIO_OUTCLR        (GPIO_BASE + 0x50c)
+#define GPIO_IN     (GPIO_BASE + 0x510)
 
 
 int gpio_set(uint32_t port, uint32_t mask) {
@@ -27,4 +28,10 @@ int gpio_toggle(uint32_t port, uint32_t mask) {
     uint32_t value = raw_read32(GPIO_OUT);
     raw_write32(GPIO_OUT, value ^ mask);
     return 0;
+}
+
+int gpio_get(uint32_t port) {
+    (void)port;
+
+    return raw_read32(GPIO_IN);
 }

@@ -8,6 +8,7 @@ constexpr uint32_t gpio_base = 0x5000 * 0x10000;
 constexpr uint32_t out = gpio_base + 0x504;
 constexpr uint32_t out_set = gpio_base + 0x508;
 constexpr uint32_t out_clr = gpio_base + 0x50c;
+constexpr uint32_t gpio_in = gpio_base + 0x510;
 
 TEST_CASE("Verify GPIO set/get memory writes") {
     auto& mem = mock::get_global_memory();
@@ -33,4 +34,7 @@ TEST_CASE("Verify GPIO set/get memory writes") {
 
     gpio_toggle(0, gpio2);
     CHECK(mem.get_value_at(out) == gpio1);
+
+    mem.set_value_at(gpio_in, gpio1);
+    CHECK(gpio_get(0) == gpio1);
 }
