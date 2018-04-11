@@ -1,5 +1,4 @@
-Import('hwenv')
-Import('demos_lib')
+Import('env')
 
-hwenv.AppendUnique(LINKFLAGS='-T%s_xip.ld' % hwenv['CHIP'])
-hwenv.Program(target='image_%s.elf' % hwenv['CHIP'], source=['main.c'] + demos_lib)
+env.AppendUnique(LINKFLAGS='-T%s_xip.ld' % env['CHIP'])
+env.Program(target='image_%s.elf' % env['CHIP'], source=['main.c'])

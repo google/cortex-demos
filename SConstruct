@@ -1,6 +1,17 @@
 import os
 import chipconf
 
+def make_chip_hwenv(tmpl_env, chip):
+    hwenv = tmpl_env.Clone()
+    hwenv['CHIP'] = chip
+    chipconf.configure_chip(hwenv, chip)
+    hwenv.AppendUnique(CPPPATH='#/src/chip-%s' % chip, CPPDEFINES=['CHIP_%s' % chip.upper()])
+
+    return hwenv
+
+def get_chip_apps(chip):
+    return ['apps/nvic-hwtest/SConscript']
+
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
             '-fdiagnostics-color=always'],
@@ -37,19 +48,23 @@ native_env.AppendUnique(
         CPPDEFINES=['TEST_MEMIO', 'CHIP_NATIVETEST'],
         )
 for chip in supported_chips:
-
-    chip_hwenv = hwenv.Clone()
-    chip_hwenv['CHIP'] = chip
-    chipconf.configure_chip(chip_hwenv, chip)
-    chip_hwenv.AppendUnique(CPPPATH='#/src/chip-%s' % chip, CPPDEFINES=['CHIP_%s' % chip.upper()])
-
-    demos_lib = SConscript('src/SConscript',
-            exports=dict(hwenv=chip_hwenv, native_env=native_env))
-
-    if chip != 'nativetest':
-        SConscript('apps/nvic-hwtest/SConscript', exports=dict(hwenv=chip_hwenv, demos_lib=demos_lib))
+    chip_hwenv = make_chip_hwenv(hwenv, chip)
+    SConscript('src/SConscript', exports=dict(hwenv=chip_hwenv, native_env=native_env))
 
 test_env = native_env.Clone()
 test_env.AppendUnique(LIBPATH='#/src')
 
-run_all_tests = SConscript('tests/SConscript', exports=dict(env=test_env, supported_chips=supported_chips))
+test_lib = SConscript('tests/SConscript', exports=dict(env=test_env, supported_chips=supported_chips))
+
+# Applications
+app_test_env = test_env.Clone()
+app_test_env.AppendUnique(LIBS=test_lib)
+
+app_env = hwenv.Clone()
+app_env.AppendUnique(LIBPATH='#/src')
+
+for chip in supported_chips:
+    chip_hwenv = make_chip_hwenv(app_env, chip)
+    chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
+    for app_script in get_chip_apps(chip):
+        SConscript(app_script, exports=dict(env=chip_hwenv, test_env=app_test_env))
