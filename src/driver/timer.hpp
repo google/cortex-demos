@@ -16,18 +16,12 @@ class Timer {
             RTC6,
         };
 
-        Timer(uint32_t base);
-        virtual ~Timer() {}
-
         static Timer* get_by_id(ID id);
 
-        void start();
-        void stop();
-
-    private:
-        const uint32_t base_;
-        int irq_n_;
-
+        virtual void start() = 0;
+        virtual void stop() = 0;
+        virtual unsigned int get_rate() const = 0;
+        virtual void  set_prescaler(unsigned int presc) = 0;
 };
 
 }  // namespace driver
