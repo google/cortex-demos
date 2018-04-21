@@ -14,7 +14,7 @@ constexpr uint32_t periph_id_to_base(unsigned int p_id) {
 
 class RTC : public Timer {
     public:
-        RTC(unsigned int id) : base_{periph_id_to_base(id)}, irq_n_ {id} {}
+        RTC(unsigned int id) : Timer(periph_id_to_base(id), id) {}
 
         void start() override {
             raw_write32(base_, 1);
@@ -37,9 +37,6 @@ class RTC : public Timer {
     private:
         static constexpr auto kPrescalerOffset = 0x508;
         static constexpr auto kBaseRate = 32768;
-
-        const uint32_t base_;
-        const unsigned int irq_n_;
 };
 
 RTC rtc0{11};
