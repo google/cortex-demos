@@ -19,6 +19,7 @@ def demos_obj(env, src, lib_suffix=None):
             source=srcname)
 
 chip_sources = hwenv.Glob('chip-%s/*.c' % hwenv['CHIP'].lower())
+chip_sources += hwenv.Glob('chip-%s/*.cpp' % hwenv['CHIP'].lower())
 
 sources = Split(
         'nvic.c '
