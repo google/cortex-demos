@@ -13,6 +13,13 @@ static void dummy_handler() {
     ++counter;
 }
 
+class TestPeriph : public driver::Peripheral {
+    public:
+        TestPeriph() : Peripheral(0x40001000, 1) {}
+        void enable_interrupts(uint32_t) override {}
+        void disable_interrupts(uint32_t) override {}
+};
+
 }  // namespace
 
 TEST_CASE("Test IRQ Setting") {
@@ -20,7 +27,7 @@ TEST_CASE("Test IRQ Setting") {
     mem.reset();
 
     nvic_init();
-    driver::Peripheral test_periph{0x40001000, 1};
+    TestPeriph test_periph;
 
     test_periph.set_irq_handler(dummy_handler);
     CHECK(counter == 0);

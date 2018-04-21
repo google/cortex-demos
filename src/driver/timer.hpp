@@ -23,7 +23,9 @@ class Timer : public Peripheral {
         virtual void start() = 0;
         virtual void stop() = 0;
         virtual unsigned int get_rate() const = 0;
-        virtual void  set_prescaler(unsigned int presc) = 0;
+        virtual void set_prescaler(unsigned int presc) = 0;
+
+        virtual void enable_tick_interrupt() = 0;
 
     protected:
         Timer(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}

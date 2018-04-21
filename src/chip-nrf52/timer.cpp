@@ -34,9 +34,30 @@ class RTC : public Timer {
             raw_write32(base_ + kPrescalerOffset, presc - 1);
         }
 
+        void enable_interrupts(uint32_t mask) override {
+            raw_write32(base_ + kIntenSetOffset, mask);
+            raw_write32(base_ + kEvtenSetOffset, mask);
+            enable_irq();
+        }
+
+        void disable_interrupts(uint32_t mask) override {
+            raw_write32(base_ + kIntenClrOffset, mask);
+        }
+
+        void enable_tick_interrupt() override {
+            enable_interrupts(kIntenTick);
+        }
+
     private:
+        static constexpr auto kIntenSetOffset = 0x304;
+        static constexpr auto kIntenClrOffset = 0x308;
+        static constexpr auto kEvtenSetOffset = 0x344;
+        static constexpr auto kEvtenClrOffset = 0x348;
+
         static constexpr auto kPrescalerOffset = 0x508;
         static constexpr auto kBaseRate = 32768;
+
+        static constexpr uint32_t kIntenTick = (1 << 0);
 };
 
 RTC rtc0{11};

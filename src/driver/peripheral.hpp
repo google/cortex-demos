@@ -22,6 +22,9 @@ class Peripheral {
         void enable_irq() const;
         void disable_irq() const;
 
+        virtual void enable_interrupts(uint32_t mask) = 0;
+        virtual void disable_interrupts(uint32_t mask) = 0;
+
     protected:
         const uint32_t base_;
         const unsigned int irq_n_;
