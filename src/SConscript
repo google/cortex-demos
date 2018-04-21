@@ -21,11 +21,13 @@ def demos_obj(env, src, lib_suffix=None):
 chip_sources = hwenv.Glob('chip-%s/*.c' % hwenv['CHIP'].lower())
 chip_sources += hwenv.Glob('chip-%s/*.cpp' % hwenv['CHIP'].lower())
 
+driver_sources = hwenv.Glob('driver/*.cpp')
+
 sources = Split(
         'nvic.c '
         'os_startup.c '
         'syscontrol.c '
-        ) + chip_sources
+        ) + chip_sources + driver_sources
 
 objects = [demos_obj(hwenv, s) for s in sources]
 demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)

@@ -21,6 +21,9 @@
 #define NVIC_ISER_BASE      (0xe000e100)
 #define NVIC_ISER(n)        (NVIC_ISER_BASE + (n) * 4)
 
+#define NVIC_ICER_BASE      (0xe000e180)
+#define NVIC_ICER(n)        (NVIC_ICER_BASE + (n) * 4)
+
 #define NVIC_ISPR_BASE      (0xe000e200)
 #define NVIC_ISPR(n)      (NVIC_ISPR_BASE + (n) * 4)
 
@@ -92,4 +95,8 @@ void nvic_disable_irqs() {
 
 void nvic_enable_irq(int irqn) {
     raw_write32(NVIC_ISER(NVIC_IRQ_REGN(irqn)), NVIC_IRQ_MASK(irqn));
+}
+
+void nvic_disable_irq(int irqn) {
+    raw_write32(NVIC_ICER(NVIC_IRQ_REGN(irqn)), NVIC_IRQ_MASK(irqn));
 }

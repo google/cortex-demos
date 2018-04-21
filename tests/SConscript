@@ -5,7 +5,7 @@ Import('supported_chips')
 test_env = env
 
 test_lib = test_env.StaticLibrary(target='demos_mock', source=['mock_memio.cpp'])
-common_tests = Split('memio_test.cpp memio_mock_test.cpp syscontrol_test.cpp nvic_test.cpp')
+common_tests = Split('memio_test.cpp memio_mock_test.cpp peripheral_test.cpp syscontrol_test.cpp nvic_test.cpp')
 
 for chip in supported_chips:
     chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))

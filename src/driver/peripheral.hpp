@@ -10,6 +10,18 @@ class Peripheral {
         Peripheral(const Peripheral&) = delete;
         virtual ~Peripheral() {}
 
+        uint32_t get_base() const {
+            return base_;
+        }
+
+        unsigned int get_irq_num() const {
+            return irq_n_;
+        }
+
+        void set_irq_handler(void (*handler)(void)) const;
+        void enable_irq() const;
+        void disable_irq() const;
+
     protected:
         const uint32_t base_;
         const unsigned int irq_n_;

@@ -38,6 +38,7 @@ void nvic_enable_irqs(void);
 void nvic_disable_irqs(void);
 
 void nvic_enable_irq(int irqn);
+void nvic_disable_irq(int irqn);
 
 #ifdef __cplusplus
 }  /* extern "C" */
