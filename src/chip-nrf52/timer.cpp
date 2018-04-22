@@ -1,6 +1,8 @@
 #include "driver/timer.hpp"
 
+#include "clk.h"
 #include "memio.h"
+#include "nrf52/clk.h"
 
 namespace driver {
 
@@ -17,6 +19,10 @@ class RTC : public Timer {
         RTC(unsigned int id) : Timer(periph_id_to_base(id), id) {}
 
         void start() override {
+            if (!lfclk_started) {
+                clk_request(kLfclkSrc);
+                lfclk_started = 1;
+            }
             raw_write32(base_, 1);
         }
 
@@ -58,7 +64,13 @@ class RTC : public Timer {
         static constexpr auto kBaseRate = 32768;
 
         static constexpr uint32_t kIntenTick = (1 << 0);
+
+        static bool lfclk_started;
+        // TODO: make this configurable
+        static constexpr auto kLfclkSrc = NRF52_LFCLK_XTAL;
 };
+
+bool RTC::lfclk_started = 0;
 
 RTC rtc0{11};
 RTC rtc1{17};

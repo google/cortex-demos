@@ -119,4 +119,4 @@ class Memory {
 
 Memory& get_global_memory();
 
-}  // namespace
+}  // namespace mock

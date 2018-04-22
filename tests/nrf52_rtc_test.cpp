@@ -1,11 +1,15 @@
 #include "catch.hpp"
 
+#include <iostream>
+
 #include "mock_memio.hpp"
 
 #include "nvic.h"
 #include "driver/timer.hpp"
 
 namespace {
+
+constexpr auto clock_base = 0x40000000;
 
 int counter;
 
@@ -25,6 +29,9 @@ TEST_CASE("RTC API") {
 
         timer->stop();
         CHECK(mem.get_value_at(base + 4, 0) == 1);
+        // TODO: Test that LFCLK was started only once
+        // This seems to be the case based on failures (ironically),
+        // but needs to have a reliable test.
     };
 
     const auto& test_prescaler = [&mem](driver::Timer* timer, uint32_t base) {
@@ -48,6 +55,7 @@ TEST_CASE("RTC API") {
     };
 
     counter = 0;
+    mem.set_value_at(clock_base + 0x418, (1 << 16) | 1);
 
     SECTION("RTC0") {
         constexpr auto rtc0_base = 0x4000b000;
