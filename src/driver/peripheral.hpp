@@ -8,7 +8,6 @@ class Peripheral {
     public:
         Peripheral(uint32_t base, unsigned int irq_n) : base_ {base}, irq_n_{irq_n} {}
         Peripheral(const Peripheral&) = delete;
-        virtual ~Peripheral() {}
 
         uint32_t get_base() const {
             return base_;
