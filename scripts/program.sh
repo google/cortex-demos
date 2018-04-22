@@ -7,7 +7,7 @@ OPENOCD=`which openocd`
 CFG_PATH="${SCRIPTDIR}/../configs/openocd"
 BOARD="nrf52dk"
 CHIP="nrf52"
-APP_NAME="nvic-hwtest"
+APP_NAME="rtc-blinker"
 
 OPENOCD_PATH="${CFG_PATH}/${BOARD}"
 OPENOCD_CFG="${CFG_PATH}/${BOARD}/program.cfg"
