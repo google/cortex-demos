@@ -10,7 +10,7 @@ def make_chip_hwenv(tmpl_env, chip):
     return hwenv
 
 def get_chip_apps(chip):
-    return ['apps/nvic-hwtest/SConscript']
+    return ['apps/nvic-hwtest/SConscript', 'apps/rtc-blinker/SConscript']
 
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
@@ -30,7 +30,7 @@ else:
 hwenv = env.Clone()
 hwenv.AppendUnique(
         CCFLAGS=['-fno-common', '-ffunction-sections', '-fdata-sections'],
-        CXXFLAGS=['-fno-rtti', '-fno-exceptions'],
+        CXXFLAGS=['-fno-rtti', '-fno-exceptions', '-fno-use-cxa-atexit'],
         LIBPATH=['#/src/linker-scripts'],
         LINKFLAGS=[
             '--static',
