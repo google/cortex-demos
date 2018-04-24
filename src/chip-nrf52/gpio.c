@@ -7,6 +7,10 @@
 #define GPIO_OUTCLR        (GPIO_BASE + 0x50c)
 #define GPIO_IN     (GPIO_BASE + 0x510)
 
+#define GPIO_DIR        (GPIO_BASE + 0x514)
+#define GPIO_DIRSET        (GPIO_BASE + 0x518)
+#define GPIO_DIRCLR        (GPIO_BASE + 0x51c)
+
 
 int gpio_set(uint32_t port, uint32_t mask) {
     (void)port;
@@ -34,4 +38,21 @@ int gpio_get(uint32_t port) {
     (void)port;
 
     return raw_read32(GPIO_IN);
+}
+
+int gpio_set_option(uint32_t port, uint32_t mask, enum gpio_option opt) {
+    (void)port;
+    int ret = 0;
+    switch (opt) {
+        case GPIO_OPT_OUTPUT:
+            raw_write32(GPIO_DIRSET, mask);
+            break;
+        case GPIO_OPT_INPUT:
+            raw_write32(GPIO_DIRCLR, mask);
+            break;
+        default:
+            ret = -1;
+    }
+
+    return ret;
 }
