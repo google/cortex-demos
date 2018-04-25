@@ -29,6 +29,8 @@ class Timer : public Peripheral {
 
     protected:
         Timer(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
+        Timer(uint32_t base, unsigned int irq_n, evt_handler_func_t* evt_handlers,
+                size_t num_handlers) : Peripheral(base, irq_n, evt_handlers, num_handlers) {}
 };
 
 }  // namespace driver
