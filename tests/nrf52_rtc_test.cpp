@@ -13,8 +13,10 @@ constexpr auto clock_base = 0x40000000;
 
 int counter;
 
-void dummy_handler() {
-    ++counter;
+void dummy_evt_handler(int evt) {
+    if (evt == 0) {
+        ++counter;
+    }
 }
 
 }  // namespace
@@ -46,7 +48,8 @@ TEST_CASE("RTC API") {
     };
 
     const auto& test_enable_interrupt = [&mem](driver::Timer* timer, uint32_t base) {
-        timer->set_irq_handler(dummy_handler);
+        timer->add_event_handler(0, dummy_evt_handler);
+        mem.set_value_at(base + 0x100, 1);
         timer->enable_tick_interrupt();
 
         CHECK((mem.get_value_at(base + 0x304, 0) & 1) == 1);

@@ -9,14 +9,21 @@ namespace driver {
 namespace {
 
 constexpr uint32_t kPeriphBase = 0x40000000;
+constexpr unsigned int kNumRTCEvents = 6;
 
 constexpr uint32_t periph_id_to_base(unsigned int p_id) {
     return kPeriphBase + p_id * 0x1000;
 }
 
+void rtc0_irq_handler();
+
+void rtc1_irq_handler();
+
+void rtc2_irq_handler();
+
 class RTC : public Timer {
     public:
-        RTC(unsigned int id) : Timer(periph_id_to_base(id), id) {}
+        RTC(unsigned int id) : Timer(periph_id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
 
         void start() override {
             if (!lfclk_started) {
@@ -41,6 +48,25 @@ class RTC : public Timer {
         }
 
         void enable_interrupts(uint32_t mask) override {
+            if (!irq_handler_configured_) {
+                void (*handler)(void) = nullptr;
+                switch (irq_n_) {
+                    case 11:
+                        handler = rtc0_irq_handler;
+                        break;
+                    case 17:
+                        handler = rtc1_irq_handler;
+                        break;
+                    case 36:
+                        handler = rtc2_irq_handler;
+                        break;
+                }
+
+                if (handler) {
+                    set_irq_handler(handler);
+                    irq_handler_configured_ = true;
+                }
+            }
             raw_write32(base_ + kIntenSetOffset, mask);
             raw_write32(base_ + kEvtenSetOffset, mask);
             enable_irq();
@@ -52,6 +78,14 @@ class RTC : public Timer {
 
         void enable_tick_interrupt() override {
             enable_interrupts(kIntenTick);
+        }
+
+        bool is_event_active(int evt) {
+            return raw_read32(base_ + 0x100 + 4 * evt);
+        }
+
+        void clear_event(int evt) {
+            raw_write32(base_ + 0x100 + 4 * evt, 0);
         }
 
     private:
@@ -68,6 +102,10 @@ class RTC : public Timer {
         static bool lfclk_started;
         // TODO: make this configurable
         static constexpr auto kLfclkSrc = NRF52_LFCLK_XTAL;
+
+        evt_handler_func_t evt_handler_storage_[kNumRTCEvents];
+
+        bool irq_handler_configured_ = false;
 };
 
 bool RTC::lfclk_started = 0;
@@ -75,6 +113,18 @@ bool RTC::lfclk_started = 0;
 RTC rtc0{11};
 RTC rtc1{17};
 RTC rtc2{36};
+
+void rtc0_irq_handler() {
+    rtc0.handle_events();
+}
+
+void rtc1_irq_handler() {
+    rtc1.handle_events();
+}
+
+void rtc2_irq_handler() {
+    rtc2.handle_events();
+}
 
 }  // namespace
 
