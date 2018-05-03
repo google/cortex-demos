@@ -1,5 +1,6 @@
 import os
 import chipconf
+import freertos
 
 def make_chip_hwenv(tmpl_env, chip):
     hwenv = tmpl_env.Clone()
@@ -10,7 +11,10 @@ def make_chip_hwenv(tmpl_env, chip):
     return hwenv
 
 def get_chip_apps(chip):
-    return ['apps/nvic-hwtest/SConscript', 'apps/rtc-blinker/SConscript']
+    return ['apps/nvic-hwtest/SConscript',
+            'apps/rtc-blinker/SConscript',
+            'apps/freertos-blinker/SConscript',
+            ]
 
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
@@ -61,10 +65,10 @@ app_test_env = test_env.Clone()
 app_test_env.AppendUnique(LIBS=test_lib)
 
 app_env = hwenv.Clone()
-app_env.AppendUnique(LIBPATH='#/src')
+app_env.AppendUnique(LIBPATH='#/src', CPPPATH=freertos.includes('#/src/FreeRTOS', 'ARM_CM4F'))
 
 for chip in supported_chips:
     chip_hwenv = make_chip_hwenv(app_env, chip)
     chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
     for app_script in get_chip_apps(chip):
-        SConscript(app_script, exports=dict(env=chip_hwenv, test_env=app_test_env))
+        SConscript(app_script, exports=dict(env=chip_hwenv, freertos_path='#/src/FreeRTOS', freertos_port='ARM_CM4F', test_env=app_test_env))
