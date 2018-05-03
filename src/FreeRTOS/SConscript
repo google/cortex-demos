@@ -1,0 +1,24 @@
+import os.path
+import freertos
+
+Import('env')
+Import('suffix')
+Import('port')
+Import('mem_mang')
+
+freertos_env = env.Clone()
+freertos_env.AppendUnique(CPPPATH=freertos.includes('.', port))
+
+def freertos_obj(env, src):
+    global suffix
+    srcname = src
+    if (hasattr(src, 'get_abspath')):
+        srcname = src.get_abspath()
+
+    target_name = srcname.replace('.c', '_%s.o' % suffix)
+    return env.Object(target=target_name, source=srcname)
+
+libfreertos = freertos_env.StaticLibrary([freertos_obj(freertos_env, s)
+        for s in freertos.sources('.', port, mem_mang)])
+
+Return('libfreertos')
