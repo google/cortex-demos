@@ -10,4 +10,9 @@ TEST_CASE("TEST UARTE API") {
         auto* uarte0 = driver::UART::request_by_id(driver::UART::ID::UARTE0);
         REQUIRE(uarte0 != nullptr);
     }
+
+    SECTION("UARTE1") {
+        auto* uarte1 = driver::UART::request_by_id(driver::UART::ID::UARTE1);
+        REQUIRE(uarte1 != nullptr);
+    }
 }
