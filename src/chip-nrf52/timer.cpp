@@ -3,17 +3,13 @@
 #include "clk.h"
 #include "memio.h"
 #include "nrf52/clk.h"
+#include "nrf52/periph_utils.hpp"
 
 namespace driver {
 
 namespace {
 
-constexpr uint32_t kPeriphBase = 0x40000000;
 constexpr unsigned int kNumRTCEvents = 6;
-
-constexpr uint32_t periph_id_to_base(unsigned int p_id) {
-    return kPeriphBase + p_id * 0x1000;
-}
 
 void rtc0_irq_handler();
 
@@ -23,7 +19,7 @@ void rtc2_irq_handler();
 
 class RTC : public Timer {
     public:
-        RTC(unsigned int id) : Timer(periph_id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
+        RTC(unsigned int id) : Timer(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
 
         void start() override {
             if (!lfclk_started) {
