@@ -28,6 +28,7 @@ sources = Split(
         'os_startup.c '
         'syscontrol.c '
         'cpp_rt.c '
+        'pinctrl.cpp '
         ) + chip_sources + driver_sources
 
 objects = [demos_obj(hwenv, s) for s in sources]
