@@ -29,8 +29,8 @@ class Peripheral {
         void handle_events();
         int add_event_handler(unsigned int evt, evt_handler_func_t handler);
 
-        virtual void enable_interrupts(uint32_t mask) = 0;
-        virtual void disable_interrupts(uint32_t mask) = 0;
+        virtual void enable_interrupts(uint32_t) {};
+        virtual void disable_interrupts(uint32_t) {};
 
     protected:
         const uint32_t base_;
