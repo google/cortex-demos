@@ -21,4 +21,8 @@ extern struct config* board_pin_config;
 
 int get_pin(int function);
 
+// Request the function to be configured and returns
+// the pin for that function.
+int request_function(int function);
+
 }  // pinctrl

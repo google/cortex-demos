@@ -12,6 +12,8 @@ enum function {
     UARTE1_CTS,
     UARTE1_RTS,
     UARTE1_TXD,
+
+    MAX_PIN_FUNCTION,
 };
 
 }  // namespace pinctrl

@@ -15,11 +15,11 @@ struct entry pinconfig_entries[] = {
     },
     {
         .function = function::UARTE0_RTS,
-        .pin = 13,
+        .pin = 14,
     },
     {
         .function = function::UARTE0_TXD,
-        .pin = 32,
+        .pin = 3,
     },
 };
 
