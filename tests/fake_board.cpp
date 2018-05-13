@@ -1,24 +1,24 @@
 #include "pinctrl.hpp"
 
-#include "fake_board.hpp"
+#include "nrf52/pinctrl.hpp"
 
 namespace pinctrl {
 
 struct entry pinconfig_entries[] = {
     {
-        .function = UARTE0_RXD,
+        .function = function::UARTE0_RXD,
         .pin = 13,
     },
     {
-        .function = UARTE0_CTS,
+        .function = function::UARTE0_CTS,
         .pin = 12,
     },
     {
-        .function = UARTE0_RTS,
+        .function = function::UARTE0_RTS,
         .pin = 13,
     },
     {
-        .function = UARTE0_TXD,
+        .function = function::UARTE0_TXD,
         .pin = 32,
     },
 };
