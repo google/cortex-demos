@@ -3,14 +3,25 @@
 namespace pinctrl {
 
 enum {
-    UARTE0_CTS = 1,
-    UARTE0_TXD = 2,
+    MIN_PIN_FUNCTION,
+    UARTE0_RXD,
+    UARTE0_CTS,
+    UARTE0_RTS,
+    UARTE0_TXD,
 };
 
 struct entry pinconfig_entries[] = {
     {
+        .function = UARTE0_RXD,
+        .pin = 13,
+    },
+    {
         .function = UARTE0_CTS,
         .pin = 12,
+    },
+    {
+        .function = UARTE0_RTS,
+        .pin = 13,
     },
     {
         .function = UARTE0_TXD,

@@ -7,8 +7,8 @@
 TEST_CASE("Test UARTE pins configuration") {
     // Numbers are based on fake_board.cpp
     auto pin = pinctrl::get_pin(1);
-    CHECK(pin == 12);
+    CHECK(pin == 13);
 
     pin = pinctrl::get_pin(2);
-    CHECK(pin == 32);
+    CHECK(pin == 12);
 }
