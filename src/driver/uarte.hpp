@@ -23,6 +23,8 @@ class UART : public Peripheral {
 
         UART(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
 
+        virtual int request() { return -1; }
+
         static UART* request_by_id(ID id);
 };
 
