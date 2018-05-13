@@ -77,9 +77,11 @@ class Memory {
             READ8,
             READ16,
             READ32,
+            READPTR,
             WRITE8,
             WRITE16,
             WRITE32,
+            WRITEPTR,
         };
 
         using JournalEntry = std::tuple<Op, uint32_t, uint32_t>;
@@ -89,17 +91,22 @@ class Memory {
 
         void reset();
 
+        void* readptr(uint32_t addr) const;
         uint32_t read32(uint32_t addr) const;
         uint16_t read16(uint32_t addr) const;
         uint8_t read8(uint32_t addr) const;
 
+        void writeptr(uint32_t addr, void* ptr);
         void write32(uint32_t addr, uint32_t value);
         void write16(uint32_t addr, uint16_t value);
         void write8(uint32_t addr, uint8_t value);
 
         void set_value_at(uint32_t addr, uint32_t value);
-        uint32_t get_value_at(uint32_t addr);
-        uint32_t get_value_at(uint32_t addr, uint32_t default_value);
+        uint32_t get_value_at(uint32_t addr) const;
+        uint32_t get_value_at(uint32_t addr, uint32_t default_value) const;
+
+        void* get_ptr_at(uint32_t addr) const;
+        void set_ptr_at(uint32_t addr, void* ptr);
 
         void set_addr_io_handler(uint32_t addr, IOHandlerStub* io_handler);
         void set_addr_io_handler(uint32_t range_start, uint32_t range_end, IOHandlerStub* io_handler);
@@ -109,6 +116,7 @@ class Memory {
         uint32_t priv_read32(uint32_t addr) const;
 
         std::map<uint32_t, uint32_t> mem_map_;
+        std::map<uint32_t, void*> mem_ptr_map_;
         // Note, memory mock does not own the pointers.
         // It is the responsibility of the caller to clean them up.
         // Special care needs to be taken in the case of the global

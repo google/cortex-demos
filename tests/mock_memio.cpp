@@ -14,6 +14,14 @@ extern "C" uint32_t raw_read32(uint32_t addr) {
     return g_memory.read32(addr);
 }
 
+extern "C" void raw_writeptr(uint32_t addr, void* ptr) {
+    g_memory.writeptr(addr, ptr);
+}
+
+extern "C" void* raw_readptr(uint32_t addr) {
+    return g_memory.readptr(addr);
+}
+
 }  // namespace
 
 void Memory::priv_write32(uint32_t addr, uint32_t value) {
@@ -39,6 +47,19 @@ uint32_t Memory::priv_read32(uint32_t addr) const {
 void Memory::write32(uint32_t addr, uint32_t value) {
     journal_.push_back(std::make_tuple(Memory::Op::WRITE32, addr, value));
     priv_write32(addr, value);
+}
+
+void Memory::writeptr(uint32_t addr, void* ptr) {
+    mem_ptr_map_[addr] = ptr;
+}
+
+void* Memory::readptr(uint32_t addr) const {
+    auto it = mem_ptr_map_.find(addr);
+    if (it != mem_ptr_map_.end()) {
+        return it->second;
+    }
+
+    return nullptr;
 }
 
 void Memory::write16(uint32_t addr, uint16_t value) {
@@ -84,11 +105,25 @@ void Memory::set_value_at(uint32_t addr, uint32_t value) {
     mem_map_[addr] = value;
 }
 
-uint32_t Memory::get_value_at(uint32_t addr) {
-    return mem_map_[addr];
+uint32_t Memory::get_value_at(uint32_t addr) const {
+    return get_value_at(addr, 0);
 }
 
-uint32_t Memory::get_value_at(uint32_t addr, uint32_t default_value) {
+void* Memory::get_ptr_at(uint32_t addr) const {
+    void* res = nullptr;
+    const auto& it = mem_ptr_map_.find(addr);
+    if (it != mem_ptr_map_.end()) {
+        res = it->second;
+    }
+
+    return res;
+}
+
+void Memory::set_ptr_at(uint32_t addr, void* ptr) {
+    mem_ptr_map_[addr] = ptr;
+}
+
+uint32_t Memory::get_value_at(uint32_t addr, uint32_t default_value) const {
     auto result = default_value;
     const auto& it = mem_map_.find(addr);
     if (it != mem_map_.end()) {
@@ -104,6 +139,7 @@ const Memory::JournalT& Memory::get_journal() const {
 
 void Memory::reset() {
     mem_map_.clear();
+    mem_ptr_map_.clear();
     journal_.clear();
     addr_handler_map_.clear();
 }
