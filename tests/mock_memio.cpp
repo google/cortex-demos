@@ -105,6 +105,7 @@ const Memory::JournalT& Memory::get_journal() const {
 void Memory::reset() {
     mem_map_.clear();
     journal_.clear();
+    addr_handler_map_.clear();
 }
 
 void Memory::set_addr_io_handler(uint32_t addr, IOHandlerStub* io_handler) {
