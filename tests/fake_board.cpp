@@ -1,14 +1,8 @@
 #include "pinctrl.hpp"
 
-namespace pinctrl {
+#include "fake_board.hpp"
 
-enum {
-    MIN_PIN_FUNCTION,
-    UARTE0_RXD,
-    UARTE0_CTS,
-    UARTE0_RTS,
-    UARTE0_TXD,
-};
+namespace pinctrl {
 
 struct entry pinconfig_entries[] = {
     {
