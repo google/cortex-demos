@@ -26,12 +26,26 @@ constexpr auto txd_ptr = 0x544;
 constexpr auto txd_maxcnt = 0x548;
 constexpr auto txd_amount = 0x54c;
 
+constexpr auto baudrate = 0x524;
 constexpr auto config = 0x56c;
 
 
 TEST_CASE("TEST UARTE API") {
     auto& mem = mock::get_global_memory();
     mem.reset();
+
+    SECTION("Test Set Baud") {
+        auto* uarte1 = driver::UART::request_by_id(driver::UART::ID::UARTE1);
+        REQUIRE(uarte1 != nullptr);
+
+        auto res = uarte1->set_baudrate(56000);
+        CHECK(res == 55944);
+        CHECK(mem.get_value_at(uarte1_base + baudrate) == 0x00e50000);
+
+        res = uarte1->set_baudrate(115200);
+        CHECK(res == 115108);
+        CHECK(mem.get_value_at(uarte1_base + baudrate) == 0x01d60000);
+    }
 
     SECTION("UARTE0") {
         auto* uarte0 = driver::UART::request_by_id(driver::UART::ID::UARTE0);
@@ -83,6 +97,12 @@ TEST_CASE("TEST UARTE API") {
         // Here we are just checking that we are not segfaulting
         std::memset(txd_buffer, 0, mem.get_value_at(uarte0_base + txd_maxcnt));
         std::memset(rxd_buffer, 0, mem.get_value_at(uarte0_base + rxd_maxcnt));
+
+        // Test default configuration
+        // This is the constant for 115200
+        CHECK(mem.get_value_at(uarte0_base + baudrate) == 0x01d60000);
+        // Hardware flow control, no parity, One stop bit
+        CHECK(mem.get_value_at(uarte0_base + config) == 0x11);
     }
 
     SECTION("UARTE1") {
