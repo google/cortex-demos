@@ -44,6 +44,7 @@ class UARTE : public UART {
             raw_writeptr(base_ + kTxdPtr, tx_buffer_);
             raw_write32(base_ + kTxdMaxCnt, sizeof(tx_buffer_));
 
+            configured_ = true;
             return 0;
         }
 

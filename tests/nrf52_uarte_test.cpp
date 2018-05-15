@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include <cstring>
+#include <tuple>
 
 #include "mock_memio.hpp"
 
@@ -35,6 +36,20 @@ TEST_CASE("TEST UARTE API") {
     SECTION("UARTE0") {
         auto* uarte0 = driver::UART::request_by_id(driver::UART::ID::UARTE0);
         REQUIRE(uarte0 != nullptr);
+
+        // Check that we are only configuring once
+        uarte0 = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+        REQUIRE(uarte0 != nullptr);
+
+        auto& journal = mem.get_journal();
+        auto conf_count = 0;
+        for (auto& entry : journal) {
+            if (std::get<1>(entry) == uarte0_base + rxd_maxcnt) {
+                ++conf_count;
+            }
+        }
+
+        CHECK(conf_count == 1);
 
         // Check that the peripheral was enabled
         CHECK(mem.get_value_at(uarte0_base + 0x500) == 8);
