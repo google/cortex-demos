@@ -92,6 +92,34 @@ class UARTE : public UART {
             return best_rate;
         }
 
+        size_t write_str(const char* str) override {
+            size_t transferred = 0;
+            size_t amount = 0;
+            unsigned int i = 0;
+            while (*str) {
+                tx_buffer_[i] = *str;
+                ++amount;
+                ++i;
+                ++str;
+                if (!*str || amount == sizeof(tx_buffer_)) {
+                    raw_write32(base_ + kTxdMaxCnt, amount);
+                    raw_write32(base_ + kTaskStartTx, 1);
+                    while (!raw_read32(base_ + kEvtEndTx));
+                    raw_write32(base_ + kEvtEndTx, 0);
+                    transferred += amount;
+
+                    if (!*str) {
+                        break;
+                    } else {
+                        amount = 0;
+                        i = 0;
+                    }
+                }
+            }
+
+            return transferred;
+        }
+
     private:
         static constexpr auto kEnableOffset = 0x500;
         static constexpr auto kEnableValue = 8;
@@ -119,6 +147,10 @@ class UARTE : public UART {
 
         static constexpr auto kDefaultRate = 115200;
         static constexpr auto kConfigHwFlow = (1 << 4);
+
+        static constexpr auto kTaskStartTx = 0x8;
+
+        static constexpr auto kEvtEndTx = 0x120;
 
         bool configured_ = false;
 

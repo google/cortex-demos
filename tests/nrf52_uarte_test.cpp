@@ -29,6 +29,8 @@ constexpr auto txd_amount = 0x54c;
 constexpr auto baudrate = 0x524;
 constexpr auto config = 0x56c;
 
+constexpr auto event_endtx = 0x120;
+
 
 TEST_CASE("TEST UARTE API") {
     auto& mem = mock::get_global_memory();
@@ -103,6 +105,15 @@ TEST_CASE("TEST UARTE API") {
         CHECK(mem.get_value_at(uarte0_base + baudrate) == 0x01d60000);
         // Hardware flow control, no parity, One stop bit
         CHECK(mem.get_value_at(uarte0_base + config) == 0x11);
+
+        SECTION("Test Write") {
+            std::string hello{"Hello!"};
+            mem.set_value_at(uarte0_base + event_endtx, 1);
+            CHECK(uarte0->write_str(hello.c_str()) == hello.size());
+
+            CHECK(mem.get_value_at(uarte0_base + txd_maxcnt) == hello.size());
+        }
+
     }
 
     SECTION("UARTE1") {

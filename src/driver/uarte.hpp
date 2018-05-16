@@ -37,6 +37,7 @@ class UART : public Peripheral {
         virtual unsigned int set_baudrate(unsigned int) { return 0; }
         virtual int set_parity(PARITY) { return -1; }
         virtual int set_stop_bits(STOP) { return -1; }
+        virtual size_t write_str(const char*) { return 0; }
 
         static UART* request_by_id(ID id);
 };
