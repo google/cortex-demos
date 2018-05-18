@@ -43,4 +43,10 @@ TEST_CASE("Test UARTE pins configuration") {
     CHECK(f_pin == 3);
     CHECK((mem.get_value_at(dir) & (1 << f_pin)) == (1 << f_pin));
     CHECK((mem.get_value_at(out) & (1 << f_pin)) == (1 << f_pin));
+
+    auto saadc_chan0 = pinctrl::request_function(pf::SAADC_CHAN0_POS);
+    CHECK(saadc_chan0 == pinctrl::saadc::AIN3);
+
+    auto saadc_chan2 = pinctrl::request_function(pf::SAADC_CHAN2_POS);
+    CHECK(saadc_chan2 == pinctrl::saadc::AIN5);
 }

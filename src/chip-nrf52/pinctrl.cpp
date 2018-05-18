@@ -29,7 +29,6 @@ int request_function(int pin_function) {
             gpio_set(0, (1 << pin));
             break;
         default:
-            ret = -1;
             break;
     }
 

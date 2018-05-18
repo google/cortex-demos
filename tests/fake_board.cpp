@@ -21,6 +21,14 @@ struct entry pinconfig_entries[] = {
         .function = function::UARTE0_TXD,
         .pin = 3,
     },
+    {
+        .function = function::SAADC_CHAN0_POS,
+        .pin = saadc::AIN3,
+    },
+    {
+        .function = function::SAADC_CHAN2_POS,
+        .pin = saadc::AIN5,
+    },
 };
 
 struct config board_config = {
