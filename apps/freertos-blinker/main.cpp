@@ -5,6 +5,7 @@
 #include "gpio.h"
 #include "memio.h"
 #include "nvic.h"
+#include "driver/uarte.hpp"
 
 
 namespace {
@@ -39,10 +40,17 @@ portTASK_FUNCTION(blinker_thread, params) {
 
     int counter = 0;
 
+    auto* uart = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+
     while (1) {
+        ++counter;
         const auto gpio_n = 17 + (counter++ & 3);
         gpio_toggle(0, (1 << gpio_n));
         vTaskDelay(pdMS_TO_TICKS(400));
+        if (counter > 20) {
+            uart->write_str("C\r\n");
+            counter = 0;
+        }
     }
 }
 
@@ -57,6 +65,10 @@ int main() {
 
     xTaskCreate(blinker_thread, "BLINK", 10 * configMINIMAL_STACK_SIZE,
             /* params = */NULL, tskIDLE_PRIORITY + 1, NULL);
+
+    auto* uart = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+
+    uart->write_str("Start\r\n");
 
     vTaskStartScheduler();
 
