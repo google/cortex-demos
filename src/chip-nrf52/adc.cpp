@@ -37,6 +37,9 @@ class SAADC : public ADC {
                 // TODO: Negative channel
             }
 
+            raw_writeptr(base_ + kResultPtrOffset, result_buffer_);
+            raw_write32(base_ + kResultMaxCnt, sizeof(result_buffer_) / 2);
+
             // Enable Peripheral
             raw_write32(base_ + kEnableOffset, 1);
 
@@ -47,10 +50,15 @@ class SAADC : public ADC {
     private:
         static constexpr auto kEnableOffset = 0x500;
         static constexpr auto kChan0Offset = 0x510;
+        static constexpr auto kResultPtrOffset = 0x62c;
+        static constexpr auto kResultMaxCnt = 0x630;
 
         static constexpr uint32_t pselp(unsigned int ch) {
             return kChan0Offset + 16 * ch;
         }
+
+        static constexpr auto kResultBufferLen = 32;
+        uint32_t result_buffer_[kResultBufferLen];
 
         bool configured_ = false;
 };

@@ -15,6 +15,9 @@ constexpr auto chx_pselp(unsigned int x) {
     return 0x510 + 16 * x;
 }
 
+constexpr auto result_ptr = 0x62c;
+constexpr auto result_maxcnt = 0x630;
+
 TEST_CASE("Test ADC API") {
     auto& mem = mock::get_global_memory();
     mem.reset();
@@ -38,5 +41,8 @@ TEST_CASE("Test ADC API") {
             CAPTURE(ch);
             CHECK(get_reg_value(chx_pselp(ch)) == 0);
         }
+
+        CHECK(mem.get_ptr_at(saadc_base + result_ptr) != nullptr);
+        CHECK(get_reg_value(result_maxcnt) > 0);
     }
 }
