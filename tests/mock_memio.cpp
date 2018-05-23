@@ -1,5 +1,7 @@
 #include "mock_memio.hpp"
 
+#include <algorithm>
+
 namespace mock {
 
 namespace {
@@ -135,6 +137,18 @@ uint32_t Memory::get_value_at(uint32_t addr, uint32_t default_value) const {
 
 const Memory::JournalT& Memory::get_journal() const {
     return journal_;
+}
+
+unsigned int Memory::get_op_count(Op op) const {
+    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry& entry) -> bool{
+            return std::get<0>(entry) == op;
+            });
+}
+
+unsigned int Memory::get_op_count(Op op, uint32_t addr) const {
+    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry& entry) -> bool{
+            return std::get<0>(entry) == op && std::get<1>(entry) == addr;
+            });
 }
 
 void Memory::reset() {
