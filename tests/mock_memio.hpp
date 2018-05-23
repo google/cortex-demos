@@ -71,11 +71,34 @@ class RegSetClearStub : public IOHandlerStub {
 
 class IgnoreWrites : public IOHandlerStub {
     public:
-        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
             (void)addr;
             (void)new_value;
             return old_value;
         }
+};
+
+template <typename T>
+class WriteSink : public IOHandlerStub {
+    public:
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
+            (void)addr;
+            (void)old_value;
+
+            sink_.push_back(static_cast<T>(new_value));
+            return new_value;
+        }
+
+        void clear() {
+            sink_.clear();
+        }
+
+        const std::vector<T>& get_data() const {
+            return sink_;
+        }
+
+    private:
+        std::vector<T> sink_;
 };
 
 class Memory {
