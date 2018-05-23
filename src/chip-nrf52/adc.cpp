@@ -4,6 +4,7 @@
 #include "memio.h"
 #include "pinctrl.hpp"
 
+#include "nrf52/peripheral.hpp"
 #include "nrf52/periph_utils.hpp"
 #include "nrf52/pinctrl.hpp"
 
@@ -13,9 +14,9 @@ namespace {
 
 constexpr auto kSaadcID = 7;
 
-class SAADC : public ADC {
+class SAADC : public ADC, public nrf52::Peripheral {
     public:
-        SAADC(unsigned int id) : ADC(periph::id_to_base(id), id) {}
+        SAADC(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id) {}
 
         int request() override {
             if (configured_) {
@@ -48,15 +49,13 @@ class SAADC : public ADC {
         }
 
         int start(int max_samples) override {
-            raw_write32(base_ + Task::START * 4, 1);
-            while (!raw_read32(base_ + 0x100 + Event::STARTED * 4));
-            raw_write32(base_ + 0x100 + Event::STARTED * 4, 0);
+            trigger_task(Task::START);
+            busy_wait_and_clear_event(Event::STARTED);
 
             auto num_samples = MIN(static_cast<unsigned>(max_samples), sizeof(result_buffer_) * 2);
             for (unsigned i = 0; i < num_samples; ++i) {
-                raw_write32(base_ + Task::SAMPLE * 4, 1);
-                while (!raw_read32(base_ + 0x100 + Event::DONE * 4));
-                raw_write32(base_ + 0x100 + Event::DONE * 4, 0);
+                trigger_task(Task::SAMPLE);
+                busy_wait_and_clear_event(Event::DONE);
             }
 
             return num_samples;

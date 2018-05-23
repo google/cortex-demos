@@ -5,7 +5,7 @@
 
 namespace driver {
 
-class ADC : public Peripheral {
+class ADC : virtual public Peripheral {
     public:
         enum class ID {
             ADC0,
@@ -16,6 +16,7 @@ class ADC : public Peripheral {
             ADC5,
         };
 
+        ADC() {}
         ADC(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
 
         virtual int request() { return -1; }
