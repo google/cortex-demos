@@ -3,6 +3,7 @@
 #include "clk.h"
 #include "memio.h"
 #include "nrf52/clk.h"
+#include "nrf52/peripheral.hpp"
 #include "nrf52/periph_utils.hpp"
 
 namespace driver {
@@ -17,20 +18,20 @@ void rtc1_irq_handler();
 
 void rtc2_irq_handler();
 
-class RTC : public Timer {
+class RTC : public Timer, public nrf52::Peripheral {
     public:
-        RTC(unsigned int id) : Timer(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
+        RTC(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
 
         void start() override {
             if (!lfclk_started) {
                 clk_request(kLfclkSrc);
                 lfclk_started = 1;
             }
-            raw_write32(base_, 1);
+            trigger_task(Task::START);
         }
 
         void stop() override {
-            raw_write32(base_ + 4, 1);
+            trigger_task(Task::STOP);
         }
 
         unsigned int get_rate() const override {
@@ -76,15 +77,12 @@ class RTC : public Timer {
             enable_interrupts(kIntenTick);
         }
 
-        bool is_event_active(int evt) {
-            return raw_read32(base_ + 0x100 + 4 * evt);
-        }
-
-        void clear_event(int evt) {
-            raw_write32(base_ + 0x100 + 4 * evt, 0);
-        }
-
     private:
+        enum Task {
+            START,
+            STOP
+        };
+
         static constexpr auto kIntenSetOffset = 0x304;
         static constexpr auto kIntenClrOffset = 0x308;
         static constexpr auto kEvtenSetOffset = 0x344;

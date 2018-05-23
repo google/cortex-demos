@@ -10,6 +10,7 @@ namespace driver {
 
 class Peripheral {
     public:
+        Peripheral() : base_{0}, irq_n_{0} {};
         Peripheral(uint32_t base, unsigned int irq_n) : base_ {base}, irq_n_{irq_n} {}
         Peripheral(uint32_t base, unsigned int irq_n, evt_handler_func_t* evt_handlers, size_t num_handlers);
         Peripheral(const Peripheral&) = delete;

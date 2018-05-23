@@ -6,7 +6,7 @@
 
 namespace driver {
 
-class Timer : public Peripheral {
+class Timer : virtual public Peripheral {
     public:
         enum class ID {
             RTC0,
@@ -26,11 +26,6 @@ class Timer : public Peripheral {
         virtual void set_prescaler(unsigned int presc) = 0;
 
         virtual void enable_tick_interrupt() = 0;
-
-    protected:
-        Timer(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
-        Timer(uint32_t base, unsigned int irq_n, evt_handler_func_t* evt_handlers,
-                size_t num_handlers) : Peripheral(base, irq_n, evt_handlers, num_handlers) {}
 };
 
 }  // namespace driver
