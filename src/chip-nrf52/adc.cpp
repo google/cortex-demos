@@ -38,7 +38,7 @@ class SAADC : public ADC {
             }
 
             raw_writeptr(base_ + kResultPtrOffset, result_buffer_);
-            raw_write32(base_ + kResultMaxCnt, sizeof(result_buffer_) / 2);
+            raw_write32(base_ + kResultMaxCnt, sizeof(result_buffer_) * 2);
 
             // Enable Peripheral
             raw_write32(base_ + kEnableOffset, 1);
@@ -47,7 +47,35 @@ class SAADC : public ADC {
             return 0;
         }
 
+        int start(int max_samples) override {
+            raw_write32(base_ + Task::START * 4, 1);
+            while (!raw_read32(base_ + 0x100 + Event::STARTED * 4));
+            raw_write32(base_ + 0x100 + Event::STARTED * 4, 0);
+
+            auto num_samples = MIN(static_cast<unsigned>(max_samples), sizeof(result_buffer_) * 2);
+            for (unsigned i = 0; i < num_samples; ++i) {
+                raw_write32(base_ + Task::SAMPLE * 4, 1);
+                while (!raw_read32(base_ + 0x100 + Event::DONE * 4));
+                raw_write32(base_ + 0x100 + Event::DONE * 4, 0);
+            }
+
+            return num_samples;
+        }
+
     private:
+        enum Task {
+            START,
+            SAMPLE,
+            STOP,
+            CALIBRATEOFFSET,
+        };
+
+        enum Event {
+            STARTED,
+            END,
+            DONE,
+        };
+
         static constexpr auto kEnableOffset = 0x500;
         static constexpr auto kChan0Offset = 0x510;
         static constexpr auto kResultPtrOffset = 0x62c;

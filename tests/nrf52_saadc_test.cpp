@@ -18,6 +18,13 @@ constexpr auto chx_pselp(unsigned int x) {
 constexpr auto result_ptr = 0x62c;
 constexpr auto result_maxcnt = 0x630;
 
+constexpr auto task_start = 0;
+constexpr auto task_sample = 4;
+
+constexpr auto event_started = 0x100;
+constexpr auto event_done = 0x108;
+
+
 TEST_CASE("Test ADC API") {
     auto& mem = mock::get_global_memory();
     mem.reset();
@@ -44,5 +51,25 @@ TEST_CASE("Test ADC API") {
 
         CHECK(mem.get_ptr_at(saadc_base + result_ptr) != nullptr);
         CHECK(get_reg_value(result_maxcnt) > 0);
+    }
+
+    SECTION("Test Measurement") {
+        auto* saadc = driver::ADC::request_by_id(driver::ADC::ID::ADC0);
+        REQUIRE(saadc != nullptr);
+
+        mock::IgnoreWrites event_sink;
+
+        mem.set_value_at(saadc_base + event_started, 1);
+        mem.set_value_at(saadc_base + event_done, 1);
+        mem.set_addr_io_handler(saadc_base + event_started, &event_sink);
+        mem.set_addr_io_handler(saadc_base + event_done, &event_sink);
+        auto num_samples = 4;
+        CHECK(saadc->start(num_samples) == num_samples);
+        CHECK(get_reg_value(task_start) > 0);
+
+        CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + task_start) == 1);
+        CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + event_started) == 1);
+        CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + event_done) == num_samples);
+        CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + task_sample) == num_samples);
     }
 }
