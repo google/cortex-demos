@@ -39,7 +39,7 @@ class RegSetClearStub : public IOHandlerStub {
         RegSetClearStub(uint32_t addr, uint32_t set_addr, uint32_t clr_addr) :
             rw_addr_{addr}, set_addr_{set_addr}, clr_addr_{clr_addr} {}
 
-        virtual uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
             auto write_value = new_value;
             if (addr == set_addr_) {
                 write_value = (old_value | new_value);
@@ -55,7 +55,7 @@ class RegSetClearStub : public IOHandlerStub {
             return write_value;
         }
 
-        virtual uint32_t read32(uint32_t addr, uint32_t value) {
+        uint32_t read32(uint32_t addr, uint32_t value) override {
             if (addr == set_addr_ || addr == clr_addr_) {
                 return get_mem_value(rw_addr_);
             }
@@ -67,6 +67,15 @@ class RegSetClearStub : public IOHandlerStub {
         const uint32_t rw_addr_;
         const uint32_t set_addr_;
         const uint32_t clr_addr_;
+};
+
+class IgnoreWrites : public IOHandlerStub {
+    public:
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
+            (void)addr;
+            (void)new_value;
+            return old_value;
+        }
 };
 
 class Memory {
