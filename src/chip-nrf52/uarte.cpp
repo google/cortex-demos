@@ -4,6 +4,7 @@
 #include "memio.h"
 #include "pinctrl.hpp"
 
+#include "nrf52/peripheral.hpp"
 #include "nrf52/periph_utils.hpp"
 #include "nrf52/pinctrl.hpp"
 
@@ -32,9 +33,9 @@ struct rate_config {
 constexpr auto kUarte0ID = 2;
 constexpr auto kUarte1ID = 40;
 
-class UARTE : public UART {
+class UARTE : public UART, public nrf52::Peripheral {
     public:
-        UARTE(unsigned int id) : UART(periph::id_to_base(id), id) {}
+        UARTE(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id) {}
 
         int request() override {
             if (configured_) {
@@ -103,9 +104,8 @@ class UARTE : public UART {
                 ++str;
                 if (!*str || amount == sizeof(tx_buffer_)) {
                     raw_write32(base_ + kTxdMaxCnt, amount);
-                    raw_write32(base_ + kTaskStartTx, 1);
-                    while (!raw_read32(base_ + kEvtEndTx));
-                    raw_write32(base_ + kEvtEndTx, 0);
+                    trigger_task(Task::START_TX);
+                    busy_wait_and_clear_event(Event::END_TX);
                     transferred += amount;
 
                     if (!*str) {
@@ -121,6 +121,26 @@ class UARTE : public UART {
         }
 
     private:
+        enum Task {
+            START_RX,
+            STOP_RX,
+            START_TX,
+            STOP_TX,
+            FLUSH_RX = (0x02c >> 2),
+        };
+
+        enum Event {
+            CTS,
+            NCTS,
+            RXRDY,
+            RESERVED_1,
+            END_RX,
+            RESERVED_2 = END_RX + 2,
+            TXRDY,
+            END_TX,
+            ERROR,
+        };
+
         static constexpr auto kEnableOffset = 0x500;
         static constexpr auto kEnableValue = 8;
 
@@ -147,8 +167,6 @@ class UARTE : public UART {
 
         static constexpr auto kDefaultRate = 115200;
         static constexpr auto kConfigHwFlow = (1 << 4);
-
-        static constexpr auto kTaskStartTx = 0x8;
 
         static constexpr auto kEvtEndTx = 0x120;
 

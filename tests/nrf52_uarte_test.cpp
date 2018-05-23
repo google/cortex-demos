@@ -108,6 +108,9 @@ TEST_CASE("TEST UARTE API") {
 
         SECTION("Test Write") {
             std::string hello{"Hello!"};
+
+            mock::IgnoreWrites event_sink;
+            mem.set_addr_io_handler(uarte0_base + event_endtx, &event_sink);
             mem.set_value_at(uarte0_base + event_endtx, 1);
             CHECK(uarte0->write_str(hello.c_str()) == hello.size());
 

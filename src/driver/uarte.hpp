@@ -6,7 +6,7 @@
 
 namespace driver {
 
-class UART : public Peripheral {
+class UART : virtual public Peripheral {
     public:
         enum class PARITY {
             NONE,
@@ -31,6 +31,7 @@ class UART : public Peripheral {
             UART4,
         };
 
+        UART() {}
         UART(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
 
         virtual int request() { return -1; }
