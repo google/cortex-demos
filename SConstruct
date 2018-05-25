@@ -28,7 +28,7 @@ env = Environment(
         CPPPATH = ['.', '#/src'],
         )
 
-supported_chips = 'nrf52'.split()
+supported_chips = 'nrf52 sam4s'.split()
 if 'DEMOS_CHIP' in os.environ:
     CHIP = os.environ['DEMOS_CHIP']
 else:
