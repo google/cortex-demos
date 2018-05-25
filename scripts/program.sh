@@ -7,7 +7,14 @@ OPENOCD=`which openocd`
 CFG_PATH="${SCRIPTDIR}/../configs/openocd"
 BOARD="nrf52dk"
 CHIP="nrf52"
-APP_NAME="freertos-blinker"
+
+if test  X${1} != X; then
+    APP_NAME="${1}"
+else
+    APP_NAME="freertos-blinker"
+fi
+
+echo "Flashing ${APP_NAME}"
 
 OPENOCD_PATH="${CFG_PATH}/${BOARD}"
 OPENOCD_CFG="${CFG_PATH}/${BOARD}/program.cfg"
