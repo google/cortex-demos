@@ -11,11 +11,14 @@ def make_chip_hwenv(tmpl_env, chip):
     return hwenv
 
 def get_chip_apps(chip):
-    return ['apps/nvic-hwtest/SConscript',
-            'apps/rtc-blinker/SConscript',
-            'apps/freertos-blinker/SConscript',
-            'apps/saadc-basic/SConscript',
-            ]
+    if chip.startswith('nrf52'):
+        return ['nvic-hwtest',
+                'rtc-blinker',
+                'freertos-blinker',
+                'saadc-basic',
+                ]
+    elif chip.startswith('sam4s'):
+        return ['nvic-hwtest' ]
 
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
@@ -59,7 +62,10 @@ for chip in supported_chips:
 test_env = native_env.Clone()
 test_env.AppendUnique(LIBPATH='#/src')
 
-test_lib = SConscript('tests/SConscript', exports=dict(env=test_env, supported_chips=supported_chips))
+for chip in supported_chips:
+    test_lib = SConscript('tests/SConscript',
+            variant_dir=os.path.join('build', 'tests', chip),
+            exports=dict(env=test_env, chip=chip))
 
 # Applications
 app_test_env = test_env.Clone()
@@ -71,5 +77,7 @@ app_env.AppendUnique(LIBPATH='#/src', CPPPATH=freertos.includes('#/src/FreeRTOS'
 for chip in supported_chips:
     chip_hwenv = make_chip_hwenv(app_env, chip)
     chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
-    for app_script in get_chip_apps(chip):
-        SConscript(app_script, exports=dict(env=chip_hwenv, freertos_path='#/src/FreeRTOS', freertos_port='ARM_CM4F', test_env=app_test_env))
+    for app in get_chip_apps(chip):
+        SConscript(os.path.join('apps', app, 'SConscript'),
+                variant_dir=os.path.join('build', 'apps', chip, app),
+                exports=dict(env=chip_hwenv, freertos_path='#/src/FreeRTOS', freertos_port='ARM_CM4F', test_env=app_test_env))

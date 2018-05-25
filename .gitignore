@@ -6,3 +6,4 @@ run_*_tests
 *.elf
 *.hex
 *.bin
+build/*

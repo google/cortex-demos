@@ -32,6 +32,13 @@ def configure_chip(env, chipname):
             '-mfloat-abi=hard',
             '-mfpu=fpv4-sp-d16',
             ]
+    elif chipname.lower().startswith('sam4s'):
+        configure_arm(env)
+        arch_flags = [
+            '-mthumb',
+            '-mcpu=cortex-m4',
+            '-mfloat-abi=soft',
+            ]
     elif chipname.lower() == 'nativetest':
         arch_defines=['TEST_MEMIO']
 

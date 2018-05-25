@@ -1,6 +1,6 @@
 import os.path
 Import('env')
-Import('supported_chips')
+Import('chip')
 
 test_env = env
 
@@ -9,11 +9,12 @@ common_tests = Split(
         'fake_board.cpp memio_test.cpp memio_mock_test.cpp '
         'peripheral_test.cpp syscontrol_test.cpp nvic_test.cpp ')
 
-for chip in supported_chips:
-    chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
-    run_chip_tests = test_env.Program(
-            LIBS='demos_%s_native' % chip,
-            target='run_%s_tests' % chip,
-            source=['test_runner.cpp'] + chip_test_objs + common_tests + test_lib)
+common_tests_objs = [test_env.Object(t) for t in common_tests]
+
+chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
+run_chip_tests = test_env.Program(
+        LIBS='demos_%s_native' % chip,
+        target='run_%s_tests' % chip,
+        source=['test_runner.cpp'] + chip_test_objs + common_tests_objs + test_lib)
 
 Return('test_lib')
