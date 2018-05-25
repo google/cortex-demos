@@ -14,6 +14,7 @@ def get_chip_apps(chip):
     return ['apps/nvic-hwtest/SConscript',
             'apps/rtc-blinker/SConscript',
             'apps/freertos-blinker/SConscript',
+            'apps/saadc-basic/SConscript',
             ]
 
 env = Environment(
