@@ -33,6 +33,10 @@ class SAADC : public ADC, public nrf52::Peripheral {
                 auto pin = pinctrl::request_function(func + pf::SAADC_CHAN_POS);
                 if (pin > pinctrl::saadc::NC) {
                     raw_write32(base_ + pselp(chan), pin);
+                    chan_offset_map_[chan] = num_channels_;
+                    ++num_channels_;
+                } else {
+                    chan_offset_map_[chan] = 0xff;
                 }
 
                 // TODO: Negative channel
@@ -49,16 +53,38 @@ class SAADC : public ADC, public nrf52::Peripheral {
         }
 
         int start(int max_samples) override {
+            raw_writeptr(base_ + kResultPtrOffset, result_buffer_);
             trigger_task(Task::START);
             busy_wait_and_clear_event(Event::STARTED);
 
-            auto num_samples = MIN(static_cast<unsigned>(max_samples), sizeof(result_buffer_) * 2);
+            auto num_samples = MIN(static_cast<unsigned>(max_samples), (sizeof(result_buffer_) / 2) / num_channels_);
             for (unsigned i = 0; i < num_samples; ++i) {
                 trigger_task(Task::SAMPLE);
                 busy_wait_and_clear_event(Event::DONE);
             }
 
             return num_samples;
+        }
+
+        unsigned get_num_channels() const override {
+            return num_channels_;
+        }
+
+        uint32_t get_result(unsigned channel, unsigned sample) override {
+            if (channel >= kMaxChannels) {
+                return 0;
+            }
+
+            if (chan_offset_map_[channel] == 0xff) {
+                return 0;
+            }
+
+            unsigned result_offset = sample * num_channels_ + chan_offset_map_[channel];
+            if (result_offset >= sizeof(result_buffer_) / 2) {
+                return 0;
+            }
+
+            return reinterpret_cast<uint16_t*>(result_buffer_)[result_offset];
         }
 
     private:
@@ -87,7 +113,12 @@ class SAADC : public ADC, public nrf52::Peripheral {
         static constexpr auto kResultBufferLen = 32;
         uint32_t result_buffer_[kResultBufferLen];
 
+        static constexpr auto kMaxChannels = 8;
+        uint8_t chan_offset_map_[kMaxChannels];
+
+
         bool configured_ = false;
+        unsigned num_channels_ = 0;
 };
 
 SAADC saadc{kSaadcID};

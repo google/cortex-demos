@@ -44,6 +44,8 @@ TEST_CASE("Test ADC API") {
         CHECK(get_reg_value(chx_pselp(0)) == ps::AIN3);
         CHECK(get_reg_value(chx_pselp(2)) == ps::AIN5);
 
+        CHECK(saadc->get_num_channels() == 2);
+
         for (auto ch : {1, 3, 4, 5, 6, 7}) {
             CAPTURE(ch);
             CHECK(get_reg_value(chx_pselp(ch)) == 0);
@@ -63,6 +65,7 @@ TEST_CASE("Test ADC API") {
         mem.set_value_at(saadc_base + event_done, 1);
         mem.set_addr_io_handler(saadc_base + event_started, &event_sink);
         mem.set_addr_io_handler(saadc_base + event_done, &event_sink);
+
         auto num_samples = 4;
         CHECK(saadc->start(num_samples) == num_samples);
         CHECK(get_reg_value(task_start) > 0);
@@ -71,5 +74,18 @@ TEST_CASE("Test ADC API") {
         CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + event_started) == 1);
         CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + event_done) == num_samples);
         CHECK(mem.get_op_count(mock::Memory::Op::WRITE32, saadc_base + task_sample) == num_samples);
+
+        auto* res_buffer = reinterpret_cast<uint32_t*>(mem.get_ptr_at(saadc_base + result_ptr));
+        *res_buffer = 0x01ca02fe;
+        *(res_buffer + 1) = 0x00ab0020;
+        *(res_buffer + 2) = 0x02b30057;
+
+        CHECK(saadc->get_result(0, 0) == 0x02fe);
+        CHECK(saadc->get_result(2, 0) == 0x01ca);
+        CHECK(saadc->get_result(3, 0) == 0);
+        CHECK(saadc->get_result(0, 1) == 0x20);
+        CHECK(saadc->get_result(2, 1) == 0xab);
+        CHECK(saadc->get_result(0, 2) == 0x57);
+        CHECK(saadc->get_result(2, 2) == 0x2b3);
     }
 }
