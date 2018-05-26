@@ -23,6 +23,10 @@ constexpr uint32_t out_value(uint32_t base) {
     return base + 0x38;
 }
 
+constexpr uint32_t input_value(uint32_t base) {
+    return base + 0x3c;
+}
+
 TEST_CASE("Test GPIO set/get/clear memory writes") {
     auto& mem = mock::get_global_memory();
     mem.reset();
@@ -36,8 +40,22 @@ TEST_CASE("Test GPIO set/get/clear memory writes") {
         mem.set_addr_io_handler(out_set(base), out_set(base) + 12, &out_stub);
 
         CAPTURE(port_index);
+
         CHECK(gpio_set(port_index, gpio1) >= 0);
         CHECK(mem.get_value_at(out_value(base)) == gpio1);
+
+        mem.set_value_at(out_value(base), gpio1 | gpio2);
+
+        CHECK(gpio_clear(port_index, gpio2) >= 0);
+        CHECK(mem.get_value_at(out_value(base)) == gpio1);
+
+        CHECK(gpio_toggle(port_index, gpio2) >= 0);
+        CHECK(mem.get_value_at(out_value(base)) == (gpio1 | gpio2));
+        CHECK(gpio_toggle(port_index, gpio1) >= 0);
+        CHECK(mem.get_value_at(out_value(base)) == gpio2);
+
+        mem.set_value_at(input_value(base), gpio2);
+        CHECK(gpio_get(port_index) == gpio2);
 
         ++port_index;
     }
