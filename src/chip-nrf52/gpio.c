@@ -34,7 +34,7 @@ int gpio_toggle(uint32_t port, uint32_t mask) {
     return 0;
 }
 
-int gpio_get(uint32_t port) {
+uint32_t gpio_get(uint32_t port) {
     (void)port;
 
     return raw_read32(GPIO_IN);

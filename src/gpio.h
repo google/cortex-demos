@@ -39,7 +39,7 @@ int gpio_toggle(uint32_t port, uint32_t mask);
  *
  * @param[port] GPIO port to read
  */
-int gpio_get(uint32_t port);
+uint32_t gpio_get(uint32_t port);
 
 int gpio_set_option(uint32_t port, uint32_t mask, enum gpio_option opt);
 
