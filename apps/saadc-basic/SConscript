@@ -7,5 +7,5 @@ env.AppendUnique(LINKFLAGS='-T%s_xip.ld' % env['CHIP'])
 
 freertos_lib = freertos.build_lib(env, freertos_path, freertos_port, mem_mang=1, suffix='blinker')
 
-env.Program(target='image_%s.elf' % env['CHIP'],
+env.Program(target='firmware.elf',
         source=['main.cpp', 'board_nrf52dk.cpp'] + freertos_lib)

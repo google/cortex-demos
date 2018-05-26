@@ -14,7 +14,7 @@ common_tests_objs = [test_env.Object(t) for t in common_tests]
 chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
 run_chip_tests = test_env.Program(
         LIBS='demos_%s_native' % chip,
-        target='run_%s_tests' % chip,
+        target='run_all_tests',
         source=['test_runner.cpp'] + chip_test_objs + common_tests_objs + test_lib)
 
 Return('test_lib')
