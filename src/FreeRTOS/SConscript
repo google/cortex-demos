@@ -24,18 +24,15 @@ def my_sources(base, port, mem_mang=None):
     return core_srcs
 
 
-def my_includes(base, port):
-    return [
-            os.path.join(base, 'Source', 'include'),
-            os.path.join(base, 'Source', 'portable', 'GCC', port)
-            ]
-
 Import('env')
 Import('port')
 Import('mem_mang')
 
 freertos_env = env.Clone()
-freertos_env.AppendUnique(CPPPATH=my_includes('.', port))
+freertos_env.AppendUnique(CPPPATH=[
+            os.path.join('.', 'Source', 'include'),
+            os.path.join('.', 'Source', 'portable', 'GCC', port)
+    ])
 
 libfreertos = freertos_env.StaticLibrary(my_sources('.', port, mem_mang))
 
