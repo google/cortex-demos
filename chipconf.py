@@ -45,3 +45,9 @@ def configure_chip(env, chipname):
     env.AppendUnique(CCFLAGS=arch_flags)
     env.AppendUnique(LINKFLAGS=arch_flags)
     env.AppendUnique(CPPDEFINES=arch_defines)
+
+def get_freertos_port(chip):
+    if chip.lower().startswith('nrf52'):
+        return 'ARM_CM4F'
+    elif chip.lower().startswith('sam4s'):
+        return 'ARM_CM3'

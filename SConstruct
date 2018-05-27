@@ -18,7 +18,9 @@ def get_chip_apps(chip):
                 'saadc-basic',
                 ]
     elif chip.startswith('sam4s'):
-        return ['nvic-hwtest' ]
+        return ['nvic-hwtest',
+                'freertos-systick-blinker',
+                ]
 
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
@@ -80,4 +82,5 @@ for chip in supported_chips:
     for app in get_chip_apps(chip):
         SConscript(os.path.join('apps', app, 'SConscript'),
                 variant_dir=os.path.join('build', 'apps', chip, app),
-                exports=dict(env=chip_hwenv, freertos_path='#/src/FreeRTOS', freertos_port='ARM_CM4F', test_env=app_test_env))
+                exports=dict(env=chip_hwenv, freertos_path='#/src/FreeRTOS',
+                    freertos_port=chipconf.get_freertos_port(chip), test_env=app_test_env))
