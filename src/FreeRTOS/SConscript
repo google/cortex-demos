@@ -1,13 +1,42 @@
 import os.path
-import freertos
+
+def my_sources(base, port, mem_mang=None):
+    core_src_names = [
+        'croutine.c',
+        'event_groups.c',
+        'list.c',
+        'queue.c',
+        'stream_buffer.c',
+        'tasks.c',
+        'timers.c']
+
+    core_srcs = [os.path.join(base, 'Source', f) for f in core_src_names]
+
+    port_path = os.path.join(base, 'Source', 'portable', 'GCC', port)
+    port_candidates = ['port.c']
+    for src in port_candidates:
+        src_path = os.path.join(port_path, src)
+        core_srcs.append(src_path)
+
+    if mem_mang is not None:
+        core_srcs.append(os.path.join(base, 'Source', 'portable', 'MemMang', 'heap_%s.c' % mem_mang))
+
+    return core_srcs
+
+
+def my_includes(base, port):
+    return [
+            os.path.join(base, 'Source', 'include'),
+            os.path.join(base, 'Source', 'portable', 'GCC', port)
+            ]
 
 Import('env')
 Import('port')
 Import('mem_mang')
 
 freertos_env = env.Clone()
-freertos_env.AppendUnique(CPPPATH=freertos.includes('.', port))
+freertos_env.AppendUnique(CPPPATH=my_includes('.', port))
 
-libfreertos = freertos_env.StaticLibrary(freertos.sources('.', port, mem_mang))
+libfreertos = freertos_env.StaticLibrary(my_sources('.', port, mem_mang))
 
 Return('libfreertos')

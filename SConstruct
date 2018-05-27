@@ -1,6 +1,5 @@
 import os
 import chipconf
-import freertos
 
 def make_chip_hwenv(tmpl_env, chip):
     hwenv = tmpl_env.Clone()
@@ -74,15 +73,19 @@ app_test_env = test_env.Clone()
 app_test_env.AppendUnique(LIBS=test_lib)
 
 app_env = hwenv.Clone()
-app_env.AppendUnique(LIBPATH='#/src', CPPPATH=freertos.includes('#/src/FreeRTOS', 'ARM_CM4F'))
+app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'src', 'FreeRTOS', 'Source', 'include')])
 
 for chip in supported_chips:
     chip_hwenv = make_chip_hwenv(app_env, chip)
     chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
     for app in get_chip_apps(chip):
+        freertos_port_name = chipconf.get_freertos_port(chip)
         app_hwenv = chip_hwenv.Clone()
-        app_hwenv.AppendUnique(CPPPATH=[os.path.join('#', 'apps', app)])
+        app_hwenv.AppendUnique(CPPPATH=[
+            os.path.join('#', 'apps', app),
+            os.path.join('#', 'src', 'FreeRTOS', 'Source', 'portable', 'GCC', freertos_port_name),
+            ])
         SConscript(os.path.join('apps', app, 'SConscript'),
                 variant_dir=os.path.join('build', 'apps', chip, app),
                 exports=dict(env=app_hwenv, freertos_path='#/src/FreeRTOS',
-                    freertos_port=chipconf.get_freertos_port(chip), test_env=app_test_env))
+                    freertos_port=freertos_port_name, test_env=app_test_env))
