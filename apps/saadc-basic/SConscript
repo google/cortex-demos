@@ -1,11 +1,13 @@
-import freertos
+import os
 Import('env')
 Import('freertos_path')
 Import('freertos_port')
 
 env.AppendUnique(LINKFLAGS='-T%s_xip.ld' % env['CHIP'])
 
-freertos_lib = freertos.build_lib(env, freertos_path, freertos_port, mem_mang=1, suffix='blinker')
+freertos_lib = SConscript(os.path.join(freertos_path, 'SConscript'),
+        exports=dict(env=env, port=freertos_port, mem_mang=1),
+        variant_dir=os.path.join('#', 'build', 'freertos', 'saadc'))
 
 env.Program(target='firmware.elf',
         source=['main.cpp', 'board_nrf52dk.cpp'] + freertos_lib)
