@@ -1,7 +1,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "core/thread.hpp"
+#include "core/freertos_thread.hpp"
 #include "driver/timer.hpp"
 #include "driver/uarte.hpp"
 #include "gpio.h"
@@ -58,24 +58,28 @@ static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
     public:
         BlinkerThread() : os::ThreadStatic<2 * configMINIMAL_STACK_SIZE>("BLINK", tskIDLE_PRIORITY + 1) {}
-        void run() override {
+        void setup() override {
             gpio_set_option(0, (1 << 17) | (1 << 18) | (1 << 19) | (1 << 20), GPIO_OPT_OUTPUT);
 
-            int counter = 0;
+            counter_ = 0;
 
-            auto* uart = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+            uart_ = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+            configASSERT(uart_);
+        }
 
-            while (1) {
-                ++counter;
-                const auto gpio_n = 17 + (counter++ & 3);
-                gpio_toggle(0, (1 << gpio_n));
-                vTaskDelay(pdMS_TO_TICKS(400));
-                if (counter > 20) {
-                    uart->write_str("C\r\n");
-                    counter = 0;
-                }
+        void mainloop() override {
+            ++counter_;
+            const auto gpio_n = 17 + (counter_++ & 3);
+            gpio_toggle(0, (1 << gpio_n));
+            vTaskDelay(pdMS_TO_TICKS(400));
+            if (counter_ > 20) {
+                uart_->write_str("C\r\n");
+                counter_ = 0;
             }
         }
+    private:
+        int counter_ = 0;
+        driver::UART* uart_ = nullptr;
 } blinker_thread;
 
 }  // namespace

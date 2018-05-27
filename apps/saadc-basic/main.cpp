@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "core/thread.hpp"
+#include "core/freertos_thread.hpp"
 #include "driver/timer.hpp"
 #include "driver/uarte.hpp"
 #include "driver/adc.hpp"
@@ -68,55 +68,65 @@ static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
     public:
         BlinkerThread() : os::ThreadStatic<2 * configMINIMAL_STACK_SIZE>("BLINK", tskIDLE_PRIORITY + 1) {}
-        void run() override {
+        void setup() override {
             gpio_set_option(0, (1 << 17) | (1 << 18) | (1 << 19) | (1 << 20), GPIO_OPT_OUTPUT);
 
-            int counter = 0;
+            counter_ = 0;
 
-            while (1) {
-                ++counter;
-                const auto gpio_n = 17 + (counter++ & 3);
-                gpio_toggle(0, (1 << gpio_n));
-                vTaskDelay(pdMS_TO_TICKS(400));
+            uart_ = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+            configASSERT(uart_);
+        }
+
+        void mainloop() override {
+            ++counter_;
+            const auto gpio_n = 17 + (counter_++ & 3);
+            gpio_toggle(0, (1 << gpio_n));
+            vTaskDelay(pdMS_TO_TICKS(400));
+            if (counter_ > 20) {
+                uart_->write_str("C\r\n");
+                counter_ = 0;
             }
         }
+    private:
+        int counter_ = 0;
+        driver::UART* uart_ = nullptr;
 } blinker_thread;
 
 class ADCThread : public os::ThreadStatic<16 * configMINIMAL_STACK_SIZE> {
     public:
         ADCThread() : os::ThreadStatic<16 * configMINIMAL_STACK_SIZE>("ADC", tskIDLE_PRIORITY + 2) {}
-        void run() override {
+        void setup() override {
+            uart_ = driver::UART::request_by_id(driver::UART::ID::UARTE0);
+            configASSERT(uart_);
 
-            auto* uart = driver::UART::request_by_id(driver::UART::ID::UARTE0);
-
-            auto* adc = driver::ADC::request_by_id(driver::ADC::ID::ADC0);
+            adc_ = driver::ADC::request_by_id(driver::ADC::ID::ADC0);
             configASSERT(adc);
+        }
 
+        void mainloop() override {
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            auto res = adc_->start(3);
+            if (res > 0) {
+                snprintf(debug_str, sizeof(debug_str), "NRES: %d\r\n", res);
+                uart_->write_str(debug_str);
+                auto ch0 = adc_->get_result(0, 0);
+                auto ch1 = adc_->get_result(1, 0);
+                snprintf(debug_str, sizeof(debug_str), "CH0-0: %lu, CH1-0: %lu\r\n", ch0, ch1);
+                uart_->write_str(debug_str);
 
-
-            while (1) {
-                vTaskDelay(pdMS_TO_TICKS(2000));
-                auto res = adc->start(3);
-                if (res > 0) {
-                    snprintf(debug_str, sizeof(debug_str), "NRES: %d\r\n", res);
-                    uart->write_str(debug_str);
-                    auto ch0 = adc->get_result(0, 0);
-                    auto ch1 = adc->get_result(1, 0);
-                    snprintf(debug_str, sizeof(debug_str), "CH0-0: %lu, CH1-0: %lu\r\n", ch0, ch1);
-                    uart->write_str(debug_str);
-
-                    ch0 = adc->get_result(0, 1);
-                    ch1 = adc->get_result(1, 1);
-                    snprintf(debug_str, sizeof(debug_str), "CH0-1: %lu, CH1-1: %lu\r\n", ch0, ch1);
-                    uart->write_str(debug_str);
-                } else {
-                    uart->write_str("FAIL\r\n");
-                }
+                ch0 = adc_->get_result(0, 1);
+                ch1 = adc_->get_result(1, 1);
+                snprintf(debug_str, sizeof(debug_str), "CH0-1: %lu, CH1-1: %lu\r\n", ch0, ch1);
+                uart_->write_str(debug_str);
+            } else {
+                uart_->write_str("FAIL\r\n");
             }
         }
 
     private:
         char debug_str[80];
+        driver::UART* uart_;
+        driver::ADC* adc_;
 } adc_thread;
 
 }  // namespace

@@ -1,7 +1,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "core/thread.hpp"
+#include "core/freertos_thread.hpp"
 #include "gpio.h"
 #include "memio.h"
 #include "nvic.h"
@@ -45,21 +45,23 @@ static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
     public:
         BlinkerThread() : os::ThreadStatic<2 * configMINIMAL_STACK_SIZE>("BLINK", tskIDLE_PRIORITY + 1) {}
-        void run() override {
-            auto led0_port = GPIO_PORTC;
-            auto led0_mask = (1 << 23);
 
+        void setup() override {
             gpio_set_option(led0_port, led0_mask, GPIO_OPT_OUTPUT);
-
-            while (1) {
-                vTaskDelay(pdMS_TO_TICKS(500));
-                gpio_toggle(led0_port, led0_mask);
-                vTaskDelay(pdMS_TO_TICKS(1000));
-                gpio_toggle(led0_port, led0_mask);
-                vTaskDelay(pdMS_TO_TICKS(750));
-                gpio_toggle(led0_port, led0_mask);
-            }
         }
+
+        void mainloop() override {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            gpio_toggle(led0_port, led0_mask);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            gpio_toggle(led0_port, led0_mask);
+            vTaskDelay(pdMS_TO_TICKS(750));
+            gpio_toggle(led0_port, led0_mask);
+        }
+
+    private:
+        static constexpr auto led0_port = GPIO_PORTC;
+        static constexpr auto led0_mask = (1 << 23);
 } blinker_thread;
 
 }  // namespace
