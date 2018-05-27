@@ -7,10 +7,6 @@
 #include "nvic.h"
 
 #include "sam4s/gpio.h"
-//
-// TODO: Move to non-app specific location
-void operator delete(void*) {}
-void operator delete(void*, unsigned) {}
 
 namespace {
 

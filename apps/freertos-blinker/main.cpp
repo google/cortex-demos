@@ -8,10 +8,6 @@
 #include "memio.h"
 #include "nvic.h"
 
-// TODO: Move to non-app specific location
-void operator delete(void*) {}
-void operator delete(void*, unsigned) {}
-
 namespace {
 
 extern "C" void xPortSysTickHandler(void);

@@ -20,6 +20,7 @@ def my_sources(base, port, mem_mang=None):
 
     if mem_mang is not None:
         core_srcs.append(os.path.join(base, 'Source', 'portable', 'MemMang', 'heap_%s.c' % mem_mang))
+        core_srcs.append(os.path.join(base, 'Source', 'portable', 'MemMang', 'heap.cpp'))
 
     return core_srcs
 

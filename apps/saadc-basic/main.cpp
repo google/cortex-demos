@@ -11,10 +11,6 @@
 #include "memio.h"
 #include "nvic.h"
 
-// TODO: Move to non-app specific location
-void operator delete(void*) {}
-void operator delete(void*, unsigned) {}
-
 namespace {
 
 uint8_t alloc_buffer[100];
