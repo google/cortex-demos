@@ -10,6 +10,12 @@
 #define PORTC_BASE      (0x400E1200)
 
 /* Register offsets in port */
+#define PIO_PER        (0x00)
+#define PIO_PDR        (0x04)
+#define PIO_PSR        (0x08)
+#define PIO_OER        (0x10)
+#define PIO_ODR        (0x14)
+#define PIO_OSR        (0x18)
 #define PIO_SODR        (0x30)
 #define PIO_CODR        (0x34)
 #define PIO_ODSR        (0x38)
@@ -56,4 +62,26 @@ uint32_t gpio_get(uint32_t port) {
     gpioASSERT(port < ARRAY_SIZE(ports));
 
     return raw_read32(ports[port] + PIO_PDSR);
+}
+
+int gpio_set_option(uint32_t port, uint32_t mask, enum gpio_option opt) {
+    gpioASSERT(port < ARRAY_SIZE(ports));
+
+    int ret = 0;
+    const uint32_t port_base = ports[port];
+    switch (opt) {
+        case GPIO_OPT_OUTPUT:
+            raw_write32(port_base + PIO_PER, mask);
+            raw_write32(port_base + PIO_OER, mask);
+            break;
+        case GPIO_OPT_INPUT:
+            raw_write32(port_base + PIO_PER, mask);
+            raw_write32(port_base + PIO_ODR, mask);
+            break;
+        default:
+            ret = -1;
+            break;
+    }
+
+    return ret;
 }

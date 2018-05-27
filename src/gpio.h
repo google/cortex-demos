@@ -8,6 +8,9 @@ enum gpio_option {
     GPIO_OPT_TRI,
     GPIO_OPT_OUTPUT,
     GPIO_OPT_INPUT,
+
+    /* Individual drivers can define their own options after this one */
+    GPIO_OPT_STD_MAX,
 };
 
 #ifdef __cplusplus
