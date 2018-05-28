@@ -38,9 +38,15 @@ void Memory::priv_write32(uint32_t addr, uint32_t value) {
 
 uint32_t Memory::priv_read32(uint32_t addr) const {
     uint32_t ret = 0;
-    const auto it = mem_map_.find(addr);
-    if (it != mem_map_.end()) {
-        ret = it->second;
+    const auto& it = addr_handler_map_.find(addr);
+    if (it != addr_handler_map_.end()) {
+        uint32_t old_value = get_value_at(addr, 0);
+        ret = it->second->read32(addr, old_value);
+    } else {
+        const auto it = mem_map_.find(addr);
+        if (it != mem_map_.end()) {
+            ret = it->second;
+        }
     }
 
     return ret;

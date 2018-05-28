@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <map>
 #include <tuple>
 #include <vector>
@@ -76,6 +77,31 @@ class IgnoreWrites : public IOHandlerStub {
             (void)new_value;
             return old_value;
         }
+};
+
+class SourceIOHandler : public IOHandlerStub {
+    public:
+        uint32_t read32(uint32_t addr, uint32_t value) override {
+            (void)addr;
+            uint32_t ret = value;
+            if (!read_seq_.empty()) {
+                ret = *(read_seq_.begin());
+                read_seq_.pop_front();
+            }
+
+            return ret;
+        }
+
+        void add_value(uint32_t value) {
+            read_seq_.push_back(value);
+        }
+
+        size_t get_seq_len() const {
+            return read_seq_.size();
+        }
+
+    private:
+        std::list<uint32_t> read_seq_;
 };
 
 template <typename T>

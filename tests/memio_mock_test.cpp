@@ -88,3 +88,19 @@ TEST_CASE("Test Memory Journal") {
 
     CHECK(entry_it != journal.end());
 }
+
+TEST_CASE("Test various stubs") {
+    mock::Memory mem;
+
+    mock::SourceIOHandler source;
+    source.add_value(0xdeadbeef);
+    source.add_value(0xbadcafe);
+
+    REQUIRE(source.get_seq_len() == 2);
+    mem.set_value_at(0xa0, 0x00550055);
+    mem.set_addr_io_handler(0xa0, &source);
+
+    CHECK(mem.read32(0xa0) == 0xdeadbeef);
+    CHECK(mem.read32(0xa0) == 0xbadcafe);
+    CHECK(mem.read32(0xa0) == 0x00550055);
+}
