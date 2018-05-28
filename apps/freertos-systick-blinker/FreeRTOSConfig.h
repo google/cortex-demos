@@ -19,8 +19,7 @@
 /* This is passed in from compiler command line */
 #define _MHz        (1000UL * 1000UL)
 #define _kHz        (1000UL)
-#define configCPU_CLOCK_HZ          (250 * _kHz)
-#define configSYSTICK_CLOCK_HZ      (configCPU_CLOCK_HZ)
+#define configCPU_CLOCK_HZ          (4 * _MHz)
 
 #define configTICK_RATE_HZ			( ( TickType_t ) 100 )
 // This minimal is for real.
