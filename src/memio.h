@@ -10,7 +10,7 @@
 #   define raw_readptr(addr)     (void*)(*((volatile uint32_t*)(addr)))
 #   define raw_read16(addr)     *((volatile uint16_t*)(addr))
 #   define raw_read8(addr)     *((volatile uint8_t*)(addr))
-#else
+#else  /* !defined(TEST_MEMIO) */
 
 #include "stdint.h"
 
@@ -32,4 +32,6 @@ uint8_t raw_read8(uint8_t addr);
 }  /* extern "C" */
 #endif
 
-#endif
+#endif  /* defined TEST_MEMIO */
+
+#define wait_mask_le32(addr, mask) while (!(raw_read32((addr)) & mask))
