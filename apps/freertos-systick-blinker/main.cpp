@@ -2,10 +2,12 @@
 #include "task.h"
 
 #include "core/freertos_thread.hpp"
+#include "clk.h"
 #include "gpio.h"
 #include "memio.h"
 #include "nvic.h"
 
+#include "sam4s/clk.h"
 #include "sam4s/gpio.h"
 
 namespace {
@@ -66,8 +68,14 @@ class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
 
 }  // namespace
 
+unsigned int g_cpu_clock_hz;
 
 int main() {
+    clk_request(SAM4S_CLK_HF_CRYSTAL);
+    clk_request(SAM4S_CLK_MAINCK);
+
+    g_cpu_clock_hz = 12 * 1000 * 1000;
+
     nvic_init();
 
     nvic_set_handler(IRQ_SVCALL, vPortSVCHandler);

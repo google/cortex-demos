@@ -16,10 +16,8 @@
 #define configUSE_TICK_HOOK         (0)
 #define configUSE_TICKLESS_IDLE     (0)
 
-/* This is passed in from compiler command line */
-#define _MHz        (1000UL * 1000UL)
-#define _kHz        (1000UL)
-#define configCPU_CLOCK_HZ          (4 * _MHz)
+extern unsigned int g_cpu_clock_hz;
+#define configCPU_CLOCK_HZ          (g_cpu_clock_hz)
 
 #define configTICK_RATE_HZ			( ( TickType_t ) 100 )
 // This minimal is for real.
