@@ -39,3 +39,8 @@ uint8_t raw_read8(uint8_t addr);
     __typeof__(addr) _addr = (addr);\
     raw_write32(_addr, raw_read32(_addr) | (mask));\
 } while (0)
+
+#define raw_clrbits_le32(addr, mask) do {\
+    __typeof__(addr) _addr = (addr);\
+    raw_write32(_addr, raw_read32(_addr) & ~(mask));\
+} while (0)
