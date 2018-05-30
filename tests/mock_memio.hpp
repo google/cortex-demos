@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <cstdint>
 #include <list>
 #include <map>
@@ -171,6 +173,8 @@ class Memory {
 
         unsigned int get_op_count(Op op) const;
         unsigned int get_op_count(Op op, uint32_t addr) const;
+
+        void print_journal() const;
 
     private:
         void priv_write32(uint32_t addr, uint32_t value);

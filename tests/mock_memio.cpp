@@ -176,6 +176,23 @@ void Memory::set_addr_io_handler(uint32_t range_start, uint32_t range_end, IOHan
     io_handler->set_memory(this);
 }
 
+void Memory::print_journal() const {
+    for (const auto& entry : journal_)  {
+        std::string op = "XX";
+        switch (std::get<0>(entry)) {
+            case Memory::Op::WRITE32:
+                op = "W32";
+                break;
+            case Memory::Op::READ32:
+                op = "R32";
+            default:
+                break;
+        }
+
+        std::cout << op << ": " << std::hex << std::get<1>(entry) << " " << std::get<2>(entry) << std::endl;
+    }
+}
+
 Memory& get_global_memory() {
     return g_memory;
 }
