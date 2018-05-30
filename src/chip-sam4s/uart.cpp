@@ -37,11 +37,19 @@ class UART : public ::driver::UART {
             raw_clrbits_le32(abcdsr0, (urxd | utxd));
             raw_clrbits_le32(abcdsr0 + 4, (urxd | utxd));
 
+            //enable transmitter and receiver
+            raw_write32(base_ + kCrOffset, (kCrTxEn | kCrRxEn));
+
             configured_ = true;
             return 0;
         }
 
     private:
+        static constexpr auto kCrOffset = 0;
+        static constexpr uint32_t kCrTxEn = (1 << 6);
+        static constexpr uint32_t kCrRxEn = (1 << 4);
+
+
         bool configured_ = false;
 };
 

@@ -4,6 +4,17 @@
 
 #include "driver/uart.hpp"
 
+constexpr uint32_t uart0_base = 0x400e0600;
+constexpr uint32_t uart1_base = 0x400e0800;
+
+constexpr uint32_t uart_base(int index) {
+    return index == 0 ? uart0_base : uart1_base;
+}
+
+constexpr uint32_t uart_cr(int index) {
+    return uart_base(index);
+}
+
 constexpr uint32_t pmc_base = 0x400e0400;
 constexpr uint32_t pmc_pcer(int index) {
     return pmc_base + (index == 0 ? 0x10 : 0x100);
@@ -85,6 +96,9 @@ TEST_CASE("Test UART API") {
             CHECK((mem.get_value_at(pio_abcdsr2(0)) & urxd) == 0);
             CHECK((mem.get_value_at(pio_abcdsr1(0)) & utxd) == 0);
             CHECK((mem.get_value_at(pio_abcdsr2(0)) & utxd) == 0);
+
+            // Check that receiver and transmitter were enabled
+            CHECK(mem.get_value_at(uart_cr(0)) == ((1 << 4) | (1 << 6)));
         }
 
         SECTION("UART1") {
@@ -109,6 +123,8 @@ TEST_CASE("Test UART API") {
             CHECK((mem.get_value_at(pio_abcdsr2(1)) & urxd) == 0);
             CHECK((mem.get_value_at(pio_abcdsr1(1)) & utxd) == 0);
             CHECK((mem.get_value_at(pio_abcdsr2(1)) & utxd) == 0);
+
+            CHECK(mem.get_value_at(uart_cr(1)) == ((1 << 4) | (1 << 6)));
         }
     }
 }
