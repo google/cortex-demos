@@ -64,7 +64,7 @@ class RegSetClearStub : public IOHandlerStub {
             return value;
         }
 
-    private:
+    protected:
         const uint32_t rw_addr_;
         const uint32_t set_addr_;
         const uint32_t clr_addr_;
