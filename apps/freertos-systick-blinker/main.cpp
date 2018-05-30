@@ -74,7 +74,7 @@ int main() {
     clk_request(SAM4S_CLK_HF_CRYSTAL);
     clk_request(SAM4S_CLK_MAINCK);
 
-    g_cpu_clock_hz = 12 * 1000 * 1000;
+    g_cpu_clock_hz = clk_get_rate(SAM4S_CLK_MAINCK);
 
     nvic_init();
 
