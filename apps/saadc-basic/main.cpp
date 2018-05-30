@@ -5,7 +5,7 @@
 
 #include "core/freertos_thread.hpp"
 #include "driver/timer.hpp"
-#include "driver/uarte.hpp"
+#include "driver/uart.hpp"
 #include "driver/adc.hpp"
 #include "gpio.h"
 #include "memio.h"

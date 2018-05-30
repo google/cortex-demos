@@ -5,7 +5,7 @@
 
 #include "mock_memio.hpp"
 
-#include "driver/uarte.hpp"
+#include "driver/uart.hpp"
 #include "pinctrl.hpp"
 #include "nrf52/pinctrl.hpp"
 

@@ -1,4 +1,4 @@
-#include "driver/uarte.hpp"
+#include "driver/uart.hpp"
 
 #include "cutils.h"
 #include "memio.h"
