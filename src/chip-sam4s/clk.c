@@ -1,13 +1,18 @@
 #include "clk.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 
+#include "cutils.h"
 #include "memio.h"
 #include "sam4s/clk.h"
 
 #define PMC_BASE        (0x400e0400)
 #define CKGR_MOR        (PMC_BASE + 0x20)
 #define CKGR_MCFR        (PMC_BASE + 0x24)
+#define CKGR_PLLAR        (PMC_BASE + 0x28)
+#define CKGR_PLLBR        (PMC_BASE + 0x2c)
+#define PMC_MCKR        (PMC_BASE + 0x30)
 #define PMC_SR        (PMC_BASE + 0x68)
 
 #define SUPC_BASE       (0x400e1410)
@@ -25,15 +30,33 @@
 #define CKGR_MCFR_MAINFRDY  (1 << 16)
 #define CKGR_MCFR_MAINF_MASK  (0xffff)
 
+#define CKGR_PLLAR_ONE      (1 << 29)
+/* TODO: get MASK/SHIFT thing in order.
+ * Makes more sense to define mask 0 based
+ * and then also define shift
+ */
+#define PLL_DIV_MASK    (0xff)
+#define PLL_DIV_SHIFT   (0)
+#define PLL_MUL_MASK    (0x7ff)
+#define PLL_MUL_SHIFT    (16)
+
 #define PMC_SR_MOSCXTS      (1 << 0)
 #define PMC_SR_MOSCSELS      (1 << 16)
+#define PMC_SR_LOCKA    (1 << 1)
+#define PMC_SR_LOCKB    (1 << 2)
 
 #define SUPC_CR_XTALSEL     (1 << 3)
 #define SUPC_CR_KEY     (0xa5 << 24)
 
 #define SUPC_SR_OSCSEL      (1 << 7)
 
-#define CRYSTAL_STARTUP_TICKS (20 << 8)
+/* ~15ms for good measure.
+ * Datasheet specifies 14.5 ms startup time for 3MHz OSC,
+ * which is the maximum.
+ */
+#define CRYSTAL_STARTUP_TICKS (62 << 8)
+
+#define PLL_STARTUP_TICKS (5 << 8)
 
 #define XTAL_RC_RATE    (32000)
 #define XTAL_EXT_RATE   (32768)
@@ -129,6 +152,19 @@ static inline unsigned _get_mainck_rate(void) {
     return _get_fastrc_rate();
 }
 
+static inline unsigned _get_pll_rate(uint32_t pllr) {
+    const unsigned mul = ((pllr >> PLL_MUL_SHIFT) & PLL_MUL_MASK);
+    const unsigned div = ((pllr >> PLL_DIV_SHIFT) & PLL_DIV_MASK);
+
+    if (div == 0 || mul == 0) {
+        return 0;
+    }
+
+    const unsigned base_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+
+    return (base_rate * (mul + 1)) / div;
+}
+
 unsigned int clk_get_rate(int clk_id) {
     unsigned int ret = 0;
     switch (clk_id) {
@@ -148,7 +184,84 @@ unsigned int clk_get_rate(int clk_id) {
             ret = _get_mainck_rate();
             break;
         case SAM4S_CLK_HF_CRYSTAL:
-            return crystal_rate;
+            ret = crystal_rate;
+            break;
+        case SAM4S_CLK_PLLACK:
+            ret = _get_pll_rate(raw_read32(CKGR_PLLAR));
+            break;
+        case SAM4S_CLK_PLLBCK:
+            ret = _get_pll_rate(raw_read32(CKGR_PLLBR));
+            break;
+    }
+
+    return ret;
+}
+
+static inline bool _rate_in_range(unsigned int rate) {
+    const unsigned MHz = 1000 * 1000;
+    return (rate <= 240 * MHz && rate >= 80 * MHz);
+}
+
+static inline unsigned int _configure_pll(uint32_t reg_addr, unsigned int rate, uint32_t flags) {
+    if (!_rate_in_range(rate)) {
+        /* Unsupported rate */
+        return 0;
+    }
+
+    unsigned int base_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+    /* Brute force the best configuration */
+    unsigned int best_rate = 0;
+    unsigned int best_mul = 0;
+    unsigned int best_div = 1;
+    for (unsigned int mul = 7; mul <= 62; ++mul) {
+        unsigned int req_div = base_rate * (mul + 1) / rate;
+        if (req_div == 0 || req_div > 255) {
+            continue;
+        }
+
+        unsigned int this_rate = (base_rate * (mul + 1)) / req_div;
+        if (this_rate == rate) {
+            best_rate = this_rate;
+            best_mul = mul;
+            best_div = req_div;
+            break;
+        } else if (this_rate > rate || !_rate_in_range(this_rate)) {
+            continue;
+        }
+
+        if (rate - this_rate < rate - best_rate) {
+            best_rate = this_rate;
+            best_mul = mul;
+            best_div = req_div;
+        }
+    }
+
+    if (best_rate > 0) {
+        raw_write32(reg_addr, (best_div | PLL_STARTUP_TICKS | (best_mul << PLL_MUL_SHIFT) | flags));
+        return best_rate;
+    }
+
+    return 0;
+}
+
+unsigned int clk_request_rate(int clk_id, unsigned int rate) {
+    unsigned int ret = 0;
+
+    switch (clk_id) {
+        case SAM4S_CLK_PLLACK:
+            ret = _configure_pll(CKGR_PLLAR, rate, CKGR_PLLAR_ONE);
+            if (ret > 0) {
+                wait_mask_le32(PMC_SR, PMC_SR_LOCKA);
+            }
+            break;
+        case SAM4S_CLK_PLLBCK:
+            ret = _configure_pll(CKGR_PLLBR, rate, 0);
+            if (ret > 0) {
+                wait_mask_le32(PMC_SR, PMC_SR_LOCKB);
+            }
+            break;
+        default:
+            ret = clk_get_rate(clk_id);
             break;
     }
 

@@ -9,6 +9,9 @@ constexpr auto pmc_base = 0x400E0400;
 constexpr auto pmc_sr = pmc_base + 0x68;
 constexpr auto ckgr_mor = pmc_base + 0x20;
 constexpr auto ckgr_mcfr = pmc_base + 0x24;
+constexpr auto ckgr_pllar = pmc_base + 0x28;
+constexpr auto ckgr_pllbr = pmc_base + 0x2c;
+constexpr auto pmc_mckr = pmc_base + 0x30;
 
 constexpr auto supc_base = 0x400e1410;
 constexpr auto supc_cr = supc_base;
@@ -74,6 +77,74 @@ TEST_CASE("Test Slow Clock Request") {
     CHECK(mem.get_value_at(supc_cr) == (0xa5000008));
 }
 
+TEST_CASE("Test PLL Configuration") {
+    constexpr uint32_t pmc_sr_locka = (1 << 1);
+    constexpr uint32_t pmc_sr_lockb = (1 << 2);
+    auto& mem = mock::get_global_memory();
+
+    mem.reset();
+    constexpr auto MHz = 1000 * 1000;
+    // Set internal Fast RC as MAINCK for tests
+    mem.set_value_at(ckgr_mor, (1 << 4) | (1 << 3));
+    const uint32_t mainck_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+    CHECK(mainck_rate == 8 * MHz);
+
+    SECTION("PLL A") {
+        mem.set_value_at(pmc_sr, pmc_sr_locka);
+        mock::SourceIOHandler statuses;
+        statuses.add_value(0);
+        statuses.add_value(0);
+        mem.set_addr_io_handler(pmc_sr, &statuses);
+
+        unsigned rate = 120 * MHz;
+        unsigned res_rate = clk_request_rate(SAM4S_CLK_PLLACK, rate);
+        CHECK(res_rate > 0);
+
+        auto pllr = mem.get_value_at(ckgr_pllar);
+        auto mul = (pllr >> 16) & 0x7ff;
+        auto div = (pllr & 0xff);
+        REQUIRE(div > 0);
+        unsigned rate_set = (mainck_rate * (mul + 1)) / div;
+        CHECK(rate_set == res_rate);
+
+        // Check that ONE is set
+        CHECK((pllr & (1 << 29)) == (1 << 29));
+
+        // Check that startup ticks is set
+        CHECK((pllr & 0x3f00) > 0);
+
+        // Check that the lock was waited on
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 3);
+    }
+
+    SECTION("PLL B") {
+        mem.set_value_at(pmc_sr, pmc_sr_lockb);
+        mock::SourceIOHandler statuses;
+        statuses.add_value(0);
+        statuses.add_value(0);
+        mem.set_addr_io_handler(pmc_sr, &statuses);
+
+        unsigned rate = 120 * MHz;
+        unsigned res_rate = clk_request_rate(SAM4S_CLK_PLLBCK, rate);
+        CHECK(res_rate > 0);
+
+        auto pllr = mem.get_value_at(ckgr_pllbr);
+        auto mul = (pllr >> 16) & 0x7ff;
+        auto div = (pllr & 0xff);
+        REQUIRE(div > 0);
+        unsigned rate_set = (mainck_rate * (mul + 1)) / div;
+        CHECK(rate_set == res_rate);
+
+        // Check that ONE is set
+        CHECK((pllr & (1 << 29)) == 0);
+
+        // Check that startup ticks is set
+        CHECK((pllr & 0x3f00) > 0);
+        // Check that the lock was waited on
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 3);
+    }
+}
+
 TEST_CASE("Test Clock Rate calculation") {
     auto& mem = mock::get_global_memory();
 
@@ -129,5 +200,34 @@ TEST_CASE("Test Clock Rate calculation") {
         REQUIRE(clk_request(SAM4S_CLK_MAINCK) >= 0);
         CHECK(clk_get_rate(SAM4S_CLK_HF_CRYSTAL) == 16 * 1000 * 1000);
         CHECK(clk_get_rate(SAM4S_CLK_MAINCK) == clk_get_rate(SAM4S_CLK_HF_CRYSTAL));
+    }
+
+    SECTION("Test PLLs") {
+        constexpr auto MHz = 1000 * 1000;
+        // Set internal Fast RC as MAINCK for tests
+        mem.set_value_at(ckgr_mor, (1 << 4) | (1 << 3));
+        const uint32_t mainck_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+        CHECK(mainck_rate == 8 * MHz);
+
+        // Initially both PLLs are stopped
+        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == 0);
+        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == 0);
+
+        constexpr uint32_t pmc_sr_locka = (1 << 1);
+        constexpr uint32_t pmc_sr_lockb = (1 << 2);
+
+        uint32_t mul = 13;
+        mem.set_value_at(ckgr_pllar, (mul << 16));
+        mem.set_value_at(ckgr_pllbr, (mul << 16));
+
+        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == 0);
+        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == 0);
+
+        uint32_t div = 1;
+        mem.set_value_at(ckgr_pllar, (1 << 29) | (mul << 16) | (div + 1));
+        mem.set_value_at(ckgr_pllbr, ((mul + 3) << 16) | div);
+
+        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == ((mainck_rate * (mul + 1)) / (div + 1)));
+        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == ((mainck_rate * (mul + 4)) / div));
     }
 }
