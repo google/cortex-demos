@@ -11,6 +11,7 @@ constexpr auto ckgr_mor = pmc_base + 0x20;
 constexpr auto ckgr_mcfr = pmc_base + 0x24;
 
 constexpr auto supc_base = 0x400e1410;
+constexpr auto supc_cr = supc_base;
 constexpr auto supc_sr = supc_base + 0x14;
 
 TEST_CASE("Test Fast Clock Configuration") {
@@ -56,6 +57,21 @@ TEST_CASE("Test Fast Clock Configuration") {
     CHECK((status & mosc_rcen) == 0);
     CHECK((status & mosc_sel) == mosc_sel);
     CHECK((status & (0xff << 16)) == ck_passwd);
+}
+
+TEST_CASE("Test Slow Clock Request") {
+    auto& mem = mock::get_global_memory();
+
+    mem.reset();
+
+    mem.set_value_at(supc_sr, (1 << 7));
+    mock::SourceIOHandler statuses;
+    statuses.add_value(0);
+    statuses.add_value(0);
+    mem.set_addr_io_handler(supc_sr, &statuses);
+
+    REQUIRE(clk_request(SAM4S_CLK_XTAL_EXT) >= 0);
+    CHECK(mem.get_value_at(supc_cr) == (0xa5000008));
 }
 
 TEST_CASE("Test Clock Rate calculation") {

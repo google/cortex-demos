@@ -28,5 +28,4 @@ enum clock_id {
     SAM4S_CLK_FCLK,
     /* Master Clock */
     SAM4S_CLK_MCK,
-
 };

@@ -11,6 +11,7 @@
 #define PMC_SR        (PMC_BASE + 0x68)
 
 #define SUPC_BASE       (0x400e1410)
+#define SUPC_CR     (SUPC_BASE)
 #define SUPC_SR     (SUPC_BASE + 0x14)
 
 #define CKGR_MOR_MOSCXTEN   (1 << 0)
@@ -26,6 +27,9 @@
 
 #define PMC_SR_MOSCXTS      (1 << 0)
 #define PMC_SR_MOSCSELS      (1 << 16)
+
+#define SUPC_CR_XTALSEL     (1 << 3)
+#define SUPC_CR_KEY     (0xa5 << 24)
 
 #define SUPC_SR_OSCSEL      (1 << 7)
 
@@ -79,6 +83,13 @@ static int _switch_to_main_crystal(void) {
     return 0;
 }
 
+static int _switch_to_slow_ext_crystal(void) {
+    raw_write32(SUPC_CR, SUPC_CR_KEY | SUPC_CR_XTALSEL);
+    wait_mask_le32(SUPC_SR, SUPC_SR_OSCSEL);
+
+    return 0;
+}
+
 int clk_request(int clk_id) {
     int ret = 0;
     switch (clk_id) {
@@ -87,6 +98,9 @@ int clk_request(int clk_id) {
             break;
         case SAM4S_CLK_MAINCK:
             ret = _switch_to_main_crystal();
+            break;
+        case SAM4S_CLK_XTAL_EXT:
+            ret = _switch_to_slow_ext_crystal();
             break;
         default:
             ret = -1;
