@@ -74,8 +74,13 @@ int main() {
     clk_request(SAM4S_CLK_XTAL_EXT);
     clk_request(SAM4S_CLK_HF_CRYSTAL);
     clk_request(SAM4S_CLK_MAINCK);
+    unsigned int pll_rate = clk_request_rate(SAM4S_CLK_PLLACK, 120*1000*1000);
 
-    g_cpu_clock_hz = clk_get_rate(SAM4S_CLK_MAINCK);
+    if (pll_rate) {
+        clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLACK);
+    }
+
+    g_cpu_clock_hz = clk_get_rate(SAM4S_CLK_MCK);
 
     nvic_init();
 
