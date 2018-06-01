@@ -29,3 +29,13 @@ enum clock_id {
     /* Master Clock */
     SAM4S_CLK_MCK,
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void sam4s_set_crystal_frequency(unsigned int);
+
+#ifdef __cplusplus
+}
+#endif

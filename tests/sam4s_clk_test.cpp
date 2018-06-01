@@ -89,12 +89,26 @@ TEST_CASE("Test PLL Configuration") {
     mem.set_value_at(ckgr_pllbr, 0x3f00);
     mem.set_value_at(pmc_mckr, 1);
 
-    constexpr auto MHz = 1000 * 1000;
-    // Set internal Fast RC as MAINCK for tests
-    mem.set_value_at(ckgr_mor, (1 << 4) | (1 << 3));
-    const uint32_t mainck_rate = clk_get_rate(SAM4S_CLK_MAINCK);
-    CHECK(mainck_rate == 8 * MHz);
+    // Fake start crystal at 16MHz
+    // For built-int slow clock this corresponds to 16MHz
+    mem.set_value_at(ckgr_mcfr, (1 << 16) | 8000);
+    mem.set_value_at(pmc_sr, 1 | (1 << 16));
 
+    constexpr auto mosc_rcen = (1 << 3);
+    mem.set_value_at(ckgr_mor, mosc_rcen);
+
+    REQUIRE(clk_request(SAM4S_CLK_HF_CRYSTAL) >= 0);
+    REQUIRE(clk_request(SAM4S_CLK_MAINCK) >= 0);
+
+    constexpr auto MHz = 1000 * 1000;
+    // based on one of real world problems
+    unsigned crystal_freq = 11999232;
+    sam4s_set_crystal_frequency(crystal_freq);
+    // Set internal Fast RC as MAINCK for tests
+    const uint32_t mainck_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+    CHECK(mainck_rate == crystal_freq);
+
+    auto start_count = mem.get_op_count(mock::Memory::Op::READ32, pmc_sr);
     SECTION("PLL A") {
         mem.set_value_at(pmc_sr, pmc_sr_locka);
         mock::SourceIOHandler statuses;
@@ -120,7 +134,7 @@ TEST_CASE("Test PLL Configuration") {
         CHECK((pllr & 0x3f00) > 0);
 
         // Check that the lock was waited on
-        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 3);
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == start_count + 3);
     }
 
     SECTION("PLL B") {
@@ -147,7 +161,7 @@ TEST_CASE("Test PLL Configuration") {
         // Check that startup ticks is set
         CHECK((pllr & 0x3f00) > 0);
         // Check that the lock was waited on
-        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 3);
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == start_count + 3);
     }
 }
 

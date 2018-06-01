@@ -86,6 +86,10 @@
 
 static unsigned int crystal_rate = 0;
 
+void sam4s_set_crystal_frequency(unsigned int value) {
+    crystal_rate = value;
+}
+
 static int _start_main_crystal(void) {
     uint32_t current_value = raw_read32(CKGR_MOR);
     current_value &= ~CKGR_MOR_MOSCXTST_MASK;
@@ -260,7 +264,7 @@ static inline unsigned int _configure_pll(uint32_t reg_addr, unsigned int rate, 
     unsigned int best_mul = 0;
     unsigned int best_div = 1;
     for (unsigned int mul = 7; mul <= 62; ++mul) {
-        unsigned int req_div = base_rate * (mul + 1) / rate;
+        unsigned int req_div = 1 + (base_rate * (mul + 1) - 1) / rate;
         if (req_div == 0 || req_div > 255) {
             continue;
         }
