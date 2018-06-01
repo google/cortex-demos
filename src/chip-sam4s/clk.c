@@ -40,10 +40,24 @@
 #define PLL_MUL_MASK    (0x7ff)
 #define PLL_MUL_SHIFT    (16)
 
+#define PMC_MCKR_CSS_MASK   (3)
+#define PMC_MCKR_CSS_SHIFT   (0)
+#define PMC_MCKR_CSS_SLOW_CLK   (0)
+#define PMC_MCKR_CSS_MAIN_CLK   (1)
+#define PMC_MCKR_CSS_PLLA_CLK   (2)
+#define PMC_MCKR_CSS_PLLB_CLK   (3)
+
+#define PMC_MCKR_PRES_MASK  (7)
+#define PMC_MCKR_PRES_SHIFT  (4)
+
+#define PMC_MCKR_PLLADIV2   (1 << 12)
+#define PMC_MCKR_PLLBDIV2   (1 << 13)
+
 #define PMC_SR_MOSCXTS      (1 << 0)
-#define PMC_SR_MOSCSELS      (1 << 16)
 #define PMC_SR_LOCKA    (1 << 1)
 #define PMC_SR_LOCKB    (1 << 2)
+#define PMC_SR_MCKRDY   (1 << 3)
+#define PMC_SR_MOSCSELS      (1 << 16)
 
 #define SUPC_CR_XTALSEL     (1 << 3)
 #define SUPC_CR_KEY     (0xa5 << 24)
@@ -152,7 +166,7 @@ static inline unsigned _get_mainck_rate(void) {
     return _get_fastrc_rate();
 }
 
-static inline unsigned _get_pll_rate(uint32_t pllr) {
+static inline unsigned _get_pll_rate(uint32_t pllr, uint32_t div2_flag) {
     const unsigned mul = ((pllr >> PLL_MUL_SHIFT) & PLL_MUL_MASK);
     const unsigned div = ((pllr >> PLL_DIV_SHIFT) & PLL_DIV_MASK);
 
@@ -162,7 +176,36 @@ static inline unsigned _get_pll_rate(uint32_t pllr) {
 
     const unsigned base_rate = clk_get_rate(SAM4S_CLK_MAINCK);
 
-    return (base_rate * (mul + 1)) / div;
+    unsigned div_in_rate = (base_rate * (mul + 1)) / div;
+    return div2_flag ? div_in_rate / 2 : div_in_rate;
+}
+
+static inline unsigned int _get_mck_rate(void) {
+    const uint32_t mckr = raw_read32(PMC_MCKR);
+    unsigned mckr_src_rate = 0;
+    switch (mckr & PMC_MCKR_CSS_MASK) {
+        case PMC_MCKR_CSS_SLOW_CLK:
+            mckr_src_rate = clk_get_rate(SAM4S_CLK_SLCK);
+            break;
+        case PMC_MCKR_CSS_MAIN_CLK:
+            mckr_src_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+            break;
+        case PMC_MCKR_CSS_PLLA_CLK:
+            mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLACK);
+            break;
+        case PMC_MCKR_CSS_PLLB_CLK:
+            mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
+            break;
+    }
+
+    uint32_t pres = (mckr >> PMC_MCKR_PRES_SHIFT) & PMC_MCKR_PRES_MASK;
+    if (pres < 7) {
+        mckr_src_rate /= (1 << pres);
+    } else {
+        mckr_src_rate /= 3;
+    }
+
+    return mckr_src_rate;
 }
 
 unsigned int clk_get_rate(int clk_id) {
@@ -187,10 +230,13 @@ unsigned int clk_get_rate(int clk_id) {
             ret = crystal_rate;
             break;
         case SAM4S_CLK_PLLACK:
-            ret = _get_pll_rate(raw_read32(CKGR_PLLAR));
+            ret = _get_pll_rate(raw_read32(CKGR_PLLAR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLADIV2);
             break;
         case SAM4S_CLK_PLLBCK:
-            ret = _get_pll_rate(raw_read32(CKGR_PLLBR));
+            ret = _get_pll_rate(raw_read32(CKGR_PLLBR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLBDIV2);
+            break;
+        case SAM4S_CLK_MCK:
+            ret = _get_mck_rate();
             break;
     }
 
@@ -262,6 +308,49 @@ unsigned int clk_request_rate(int clk_id, unsigned int rate) {
             break;
         default:
             ret = clk_get_rate(clk_id);
+            break;
+    }
+
+    return ret;
+}
+
+static inline int _set_mck_option(int option) {
+    int ret = -1;
+    unsigned parent_rate = 0;
+    uint32_t css = PMC_MCKR_CSS_MAIN_CLK;
+    switch (option) {
+        case SAM4S_CLK_PLLACK:
+            parent_rate = clk_get_rate(SAM4S_CLK_PLLACK);
+            css = PMC_MCKR_CSS_PLLA_CLK;
+            break;
+        case SAM4S_CLK_PLLBCK:
+            parent_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
+            css = PMC_MCKR_CSS_PLLB_CLK;
+            break;
+    }
+
+    if (parent_rate) {
+        /* We aren't using the prescaler, so just set CSS and
+         * wait for clock to be ready.
+         * If the prescaler is used, it needs to be configured before
+         * CSS in similar manner.
+         */
+        uint32_t pmc_mckr = raw_read32(PMC_MCKR);
+        pmc_mckr &= ~(PMC_MCKR_CSS_MASK << PMC_MCKR_CSS_SHIFT);
+        pmc_mckr |= css;
+        raw_write32(PMC_MCKR, pmc_mckr);
+        wait_mask_le32(PMC_SR, PMC_SR_MCKRDY);
+        ret = 0;
+    }
+
+    return ret;
+}
+
+int clk_request_option(int clk_id, int option) {
+    int ret = -1;
+    switch (clk_id) {
+        case SAM4S_CLK_MCK:
+            ret = _set_mck_option(option);
             break;
     }
 

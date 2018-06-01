@@ -83,6 +83,12 @@ TEST_CASE("Test PLL Configuration") {
     auto& mem = mock::get_global_memory();
 
     mem.reset();
+    // Set reset values of some clock registers
+    mem.set_value_at(ckgr_mor, 8);
+    mem.set_value_at(ckgr_pllar, 0x3f00);
+    mem.set_value_at(ckgr_pllbr, 0x3f00);
+    mem.set_value_at(pmc_mckr, 1);
+
     constexpr auto MHz = 1000 * 1000;
     // Set internal Fast RC as MAINCK for tests
     mem.set_value_at(ckgr_mor, (1 << 4) | (1 << 3));
@@ -145,10 +151,62 @@ TEST_CASE("Test PLL Configuration") {
     }
 }
 
+TEST_CASE("Test Master Clock Switch to PLL") {
+    auto& mem = mock::get_global_memory();
+
+    mem.reset();
+    // The reset value of these registers
+    mem.set_value_at(pmc_mckr, 1);
+    mem.set_value_at(ckgr_mor, (1 << 3));
+
+    SECTION("Switch to PLLA") {
+        // PLL is stopped, should not be able to switch first.
+        CHECK(clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLACK) < 0);
+
+        mem.set_value_at(ckgr_pllar, (1 << 29) | (10 << 16) | 1);
+        // Self-Check: this was enought to enable the PLL
+        auto pll_rate = clk_get_rate(SAM4S_CLK_PLLACK);
+        REQUIRE(pll_rate > 0);
+
+        mock::SourceIOHandler statuses;
+        mem.set_value_at(pmc_sr, (1 << 3));
+        statuses.add_value(0);
+        statuses.add_value(0);
+        statuses.add_value(0);
+        mem.set_addr_io_handler(pmc_sr, &statuses);
+
+        CHECK(clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLACK) >= 0);
+        CHECK(clk_get_rate(SAM4S_CLK_MCK) == pll_rate);
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 4);
+    }
+
+    SECTION("Switch to PLLB") {
+        // PLL is stopped, should not be able to switch first.
+        CHECK(clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLBCK) < 0);
+
+        mem.set_value_at(ckgr_pllbr, (1 << 29) | (10 << 16) | 1);
+        // Self-Check: this was enought to enable the PLL
+        auto pll_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
+        REQUIRE(pll_rate > 0);
+
+        mock::SourceIOHandler statuses;
+        mem.set_value_at(pmc_sr, (1 << 3));
+        statuses.add_value(0);
+        statuses.add_value(0);
+        statuses.add_value(0);
+        mem.set_addr_io_handler(pmc_sr, &statuses);
+
+        CHECK(clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLBCK) >= 0);
+        CHECK(clk_get_rate(SAM4S_CLK_MCK) == pll_rate);
+        CHECK(mem.get_op_count(mock::Memory::Op::READ32, pmc_sr) == 4);
+    }
+}
+
 TEST_CASE("Test Clock Rate calculation") {
     auto& mem = mock::get_global_memory();
 
     mem.reset();
+    mem.set_value_at(pmc_mckr, 1);
 
     SECTION("Slow Clocks") {
         CHECK(clk_get_rate(SAM4S_CLK_XTAL_RC) == 32000);
@@ -200,6 +258,19 @@ TEST_CASE("Test Clock Rate calculation") {
         REQUIRE(clk_request(SAM4S_CLK_MAINCK) >= 0);
         CHECK(clk_get_rate(SAM4S_CLK_HF_CRYSTAL) == 16 * 1000 * 1000);
         CHECK(clk_get_rate(SAM4S_CLK_MAINCK) == clk_get_rate(SAM4S_CLK_HF_CRYSTAL));
+
+        // Master Clock is Main Clock by default
+        CHECK(clk_get_rate(SAM4S_CLK_MCK) == clk_get_rate(SAM4S_CLK_MAINCK));
+
+        unsigned int base_mcr_rate = clk_get_rate(SAM4S_CLK_MCK);
+        // Test Divisors
+        for (unsigned i = 0; i < 7; ++i) {
+            mem.set_value_at(pmc_mckr, (i << 4) | 1);
+            CHECK(clk_get_rate(SAM4S_CLK_MCK) == base_mcr_rate / (1 << i));
+        }
+
+        mem.set_value_at(pmc_mckr, (7 << 4) | 1);
+        CHECK(clk_get_rate(SAM4S_CLK_MCK) == base_mcr_rate / 3);
     }
 
     SECTION("Test PLLs") {
@@ -220,6 +291,7 @@ TEST_CASE("Test Clock Rate calculation") {
         mem.set_value_at(ckgr_pllar, (mul << 16));
         mem.set_value_at(ckgr_pllbr, (mul << 16));
 
+        // No divisor -> still stopped
         CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == 0);
         CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == 0);
 
@@ -227,7 +299,16 @@ TEST_CASE("Test Clock Rate calculation") {
         mem.set_value_at(ckgr_pllar, (1 << 29) | (mul << 16) | (div + 1));
         mem.set_value_at(ckgr_pllbr, ((mul + 3) << 16) | div);
 
-        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == ((mainck_rate * (mul + 1)) / (div + 1)));
-        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == ((mainck_rate * (mul + 4)) / div));
+        auto plla_input_rate = ((mainck_rate * (mul + 1)) / (div + 1));
+        auto pllb_input_rate = ((mainck_rate * (mul + 4)) / div);
+        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == plla_input_rate);
+        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == pllb_input_rate);
+
+        // Enable divider
+        mem.set_value_at(pmc_mckr, (1 << 12));
+        CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == plla_input_rate / 2);
+
+        mem.set_value_at(pmc_mckr, (1 << 13));
+        CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == pllb_input_rate / 2);
     }
 }
