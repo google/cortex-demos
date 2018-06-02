@@ -1,5 +1,7 @@
 #include "catch.hpp"
 
+#include <cstring>
+
 #include "mock_memio.hpp"
 
 #include "clk.h"
@@ -25,6 +27,14 @@ constexpr uint32_t uart_base(int index) {
 
 constexpr uint32_t uart_cr(int index) {
     return uart_base(index);
+}
+
+constexpr uint32_t uart_sr(int index) {
+    return uart_base(index) + 0x14;
+}
+
+constexpr uint32_t uart_thr(int index) {
+    return uart_base(index) + 0x1c;
 }
 
 constexpr uint32_t uart_mr(int index) {
@@ -150,6 +160,25 @@ TEST_CASE("Test UART API") {
             CHECK(mem.get_value_at(uart_cr(1)) == ((1 << 4) | (1 << 6)));
             // Check that the default parity is no parity
             CHECK((mem.get_value_at(uart_mr(1)) & (7 << 9)) == (1 << 11));
+        }
+
+        SECTION("Test Write") {
+            auto* uart = driver::UART::request_by_id(driver::UART::ID::UART1);
+            REQUIRE(uart != nullptr);
+
+            mock::WriteSink<uint8_t> tx_data_handler;
+            mem.set_addr_io_handler(uart_thr(1), &tx_data_handler);
+
+            // For simplycity TXRDY will always read as one
+            mem.set_value_at(uart_sr(1), (1 << 1));
+
+            const std::string hello("Hello!");
+            auto written = uart->write_str(hello.c_str());
+            CHECK(written == hello.size());
+
+            const auto& written_data = tx_data_handler.get_data();
+            REQUIRE(written_data.size() == hello.size());
+            CHECK(std::memcmp(&written_data[0], hello.c_str(), hello.size()) == 0);
         }
     }
 }

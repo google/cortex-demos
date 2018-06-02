@@ -91,6 +91,18 @@ class UART : public ::driver::UART {
             return 0;
         }
 
+        size_t write_str(const char* str) override {
+            size_t ret = 0;
+            while (*str) {
+                wait_mask_le32(base_ + kStatusOffset, kStatusTxRdy);
+                raw_write32(base_ + kThrOffset, *str);
+                ++str;
+                ++ret;
+            }
+
+            return ret;
+        }
+
     private:
         static constexpr auto kCrOffset = 0;
         static constexpr uint32_t kCrTxEn = (1 << 6);
@@ -99,6 +111,11 @@ class UART : public ::driver::UART {
         static constexpr auto kMrOffset = 4;
         static constexpr uint32_t kMrParMask = 7;
         static constexpr uint32_t kMrParShift = 9;
+
+        static constexpr auto kStatusOffset = 0x14;
+        static constexpr auto kStatusTxRdy = (1 << 1);
+
+        static constexpr auto kThrOffset = 0x1c;
 
         static constexpr auto kBrgrOffset = 0x20;
 
