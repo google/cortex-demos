@@ -29,6 +29,12 @@ class UART : virtual public Peripheral {
             UART2,
             UART3,
             UART4,
+
+            USART0,
+            USART1,
+            USART2,
+            USART3,
+            USART4,
         };
 
         UART() {}

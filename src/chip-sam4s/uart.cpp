@@ -1,6 +1,9 @@
 #include "driver/uart.hpp"
 
+#include "clk.h"
 #include "memio.h"
+
+#include "sam4s/clk.h"
 
 constexpr auto pmc_pcer0 = 0x400e0410;
 constexpr auto pio_pera = 0x400e0e00;
@@ -22,8 +25,8 @@ class UART : public ::driver::UART {
             }
 
             // Enable peripheral clock
-            // TODO: Do this from clock controller driver
-            raw_write32(pmc_pcer0, (1 << irq_n_));
+            // TODO: Move this to common peripheral class
+            clk_request(SAM4S_CLK_PIDCK(irq_n_));
 
             // Configure IO lines.
             // TODO: Do this from pinctrl driver
@@ -44,10 +47,32 @@ class UART : public ::driver::UART {
             return 0;
         }
 
+        unsigned int set_baudrate(unsigned int rate) override {
+            if (rate == 0) {
+                return 0;
+            }
+            // TODO: This should be a request for parent clock rate,
+            // this driver does not need to hardcode its parent.
+            unsigned int input_rate = clk_get_rate(SAM4S_CLK_PCK);
+            if (input_rate == 0) {
+                return 0;
+            }
+            uint32_t cd = input_rate / (16 * rate);
+            if (cd == 0) {
+                return 0;
+            }
+
+            raw_write32(base_ + kBrgrOffset, cd);
+            unsigned int br = input_rate / (16 * cd);
+            return br;
+        }
+
     private:
         static constexpr auto kCrOffset = 0;
         static constexpr uint32_t kCrTxEn = (1 << 6);
         static constexpr uint32_t kCrRxEn = (1 << 4);
+
+        static constexpr auto kBrgrOffset = 0x20;
 
 
         bool configured_ = false;

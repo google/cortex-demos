@@ -2,7 +2,19 @@
 
 #include "mock_memio.hpp"
 
+#include "clk.h"
+#include "sam4s/clk.h"
 #include "driver/uart.hpp"
+
+constexpr auto pmc_base = 0x400E0400;
+constexpr auto pmc_pcer0 = pmc_base + 0x10;
+constexpr auto ckgr_mor = pmc_base + 0x20;
+constexpr auto ckgr_mcfr = pmc_base + 0x24;
+constexpr auto ckgr_pllar = pmc_base + 0x28;
+constexpr auto ckgr_pllbr = pmc_base + 0x2c;
+constexpr auto pmc_mckr = pmc_base + 0x30;
+constexpr auto pmc_sr = pmc_base + 0x68;
+constexpr auto pmc_pcer1 = pmc_base + 0x100;
 
 constexpr uint32_t uart0_base = 0x400e0600;
 constexpr uint32_t uart1_base = 0x400e0800;
@@ -15,7 +27,10 @@ constexpr uint32_t uart_cr(int index) {
     return uart_base(index);
 }
 
-constexpr uint32_t pmc_base = 0x400e0400;
+constexpr uint32_t uart_brgr(int index) {
+    return uart_base(index) + 0x20;
+}
+
 constexpr uint32_t pmc_pcer(int index) {
     return pmc_base + (index == 0 ? 0x10 : 0x100);
 }
@@ -126,5 +141,40 @@ TEST_CASE("Test UART API") {
 
             CHECK(mem.get_value_at(uart_cr(1)) == ((1 << 4) | (1 << 6)));
         }
+    }
+}
+
+TEST_CASE("Test Baud Rate Setting") {
+    auto& mem = mock::get_global_memory();
+    mem.reset();
+    // Set reset values of some clock registers
+    mem.set_value_at(ckgr_mor, 8);
+    mem.set_value_at(ckgr_pllar, 0x3f00);
+    mem.set_value_at(ckgr_pllbr, 0x3f00);
+    mem.set_value_at(pmc_mckr, 1);
+
+    auto pck_rate = clk_get_rate(SAM4S_CLK_PCK);
+    REQUIRE(pck_rate > 0);
+
+    SECTION("UART0") {
+        auto* uart = driver::UART::request_by_id(driver::UART::ID::UART0);
+        REQUIRE(uart != nullptr);
+
+        unsigned br = uart->set_baudrate(14400);
+        REQUIRE(br > 0);
+        auto cd = mem.get_value_at(uart_brgr(0));
+        REQUIRE(cd > 0);
+        CHECK(br == pck_rate / (16 * cd));
+    }
+
+    SECTION("UART1") {
+        auto* uart = driver::UART::request_by_id(driver::UART::ID::UART1);
+        REQUIRE(uart != nullptr);
+
+        unsigned br = uart->set_baudrate(14400);
+        REQUIRE(br > 0);
+        auto cd = mem.get_value_at(uart_brgr(1));
+        REQUIRE(cd > 0);
+        CHECK(br == pck_rate / (16 * cd));
     }
 }
