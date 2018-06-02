@@ -8,12 +8,18 @@
 #include "sam4s/clk.h"
 
 #define PMC_BASE        (0x400e0400)
+#define PMC_PCER0       (PMC_BASE + 0x10)
+#define PMC_PCDR0       (PMC_BASE + 0x14)
+#define PMC_PCSR0       (PMC_BASE + 0x18)
 #define CKGR_MOR        (PMC_BASE + 0x20)
 #define CKGR_MCFR        (PMC_BASE + 0x24)
 #define CKGR_PLLAR        (PMC_BASE + 0x28)
 #define CKGR_PLLBR        (PMC_BASE + 0x2c)
 #define PMC_MCKR        (PMC_BASE + 0x30)
 #define PMC_SR        (PMC_BASE + 0x68)
+#define PMC_PCER1       (PMC_BASE + 0x100)
+#define PMC_PCDR1       (PMC_BASE + 0x104)
+#define PMC_PCSR1       (PMC_BASE + 0x108)
 
 #define SUPC_BASE       (0x400e1410)
 #define SUPC_CR     (SUPC_BASE)
@@ -133,6 +139,14 @@ static int _switch_to_slow_ext_crystal(void) {
 
 int clk_request(int clk_id) {
     int ret = 0;
+    if (clk_id >= SAM4S_CLK_PIDCK(8) && clk_id < SAM4S_CLK_PIDCK(32)) {
+        raw_write32(PMC_PCER0, (1 << (clk_id - SAM4S_CLK_PIDCK(0))));
+        return 0;
+    } else if (clk_id >= SAM4S_CLK_PIDCK(32) && clk_id < SAM4S_CLK_PIDCK(35)) {
+        raw_write32(PMC_PCER1, (1 << (clk_id - SAM4S_CLK_PIDCK(32))));
+        return 0;
+    }
+
     switch (clk_id) {
         case SAM4S_CLK_HF_CRYSTAL:
             ret = _start_main_crystal();
@@ -239,9 +253,25 @@ unsigned int clk_get_rate(int clk_id) {
         case SAM4S_CLK_PLLBCK:
             ret = _get_pll_rate(raw_read32(CKGR_PLLBR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLBDIV2);
             break;
+        case SAM4S_CLK_PCK:
+        case SAM4S_CLK_FCLK:
+        case SAM4S_CLK_HCLK:
         case SAM4S_CLK_MCK:
             ret = _get_mck_rate();
             break;
+        default:
+            /* FIXME: This returns incorrect value for first 8 clocks
+             * Do they matter?
+             */
+            if (clk_id >= SAM4S_CLK_PIDCK(0) && clk_id < SAM4S_CLK_PIDCK(32)) {
+                if (raw_read32(PMC_PCSR0) & (1 << (clk_id - SAM4S_CLK_PIDCK(0)))) {
+                    ret = _get_mck_rate();
+                }
+            } else if (clk_id >= SAM4S_CLK_PIDCK(32) && clk_id < SAM4S_CLK_PIDCK(35)) {
+                if (raw_read32(PMC_PCSR1) & (1 << (clk_id - SAM4S_CLK_PIDCK(32)))) {
+                    ret = _get_mck_rate();
+                }
+            }
     }
 
     return ret;

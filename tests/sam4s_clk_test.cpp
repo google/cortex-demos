@@ -6,16 +6,32 @@
 #include "sam4s/clk.h"
 
 constexpr auto pmc_base = 0x400E0400;
-constexpr auto pmc_sr = pmc_base + 0x68;
+constexpr auto pmc_pcer0 = pmc_base + 0x10;
 constexpr auto ckgr_mor = pmc_base + 0x20;
 constexpr auto ckgr_mcfr = pmc_base + 0x24;
 constexpr auto ckgr_pllar = pmc_base + 0x28;
 constexpr auto ckgr_pllbr = pmc_base + 0x2c;
 constexpr auto pmc_mckr = pmc_base + 0x30;
+constexpr auto pmc_sr = pmc_base + 0x68;
+constexpr auto pmc_pcer1 = pmc_base + 0x100;
 
 constexpr auto supc_base = 0x400e1410;
 constexpr auto supc_cr = supc_base;
 constexpr auto supc_sr = supc_base + 0x14;
+
+namespace {
+
+// TODO: move this to common sam4s testing library
+class RegEDS : public mock::RegSetClearStub {
+    public:
+        RegEDS(uint32_t enable_reg) : mock::RegSetClearStub(enable_reg + 8, enable_reg, enable_reg + 4) {}
+
+        static void install(mock::Memory& mem, RegEDS* eds) {
+            mem.set_addr_io_handler(eds->set_addr_, eds->set_addr_ + 8, eds);
+        }
+};
+
+}  // namespace
 
 TEST_CASE("Test Fast Clock Configuration") {
     auto& mem = mock::get_global_memory();
@@ -220,6 +236,9 @@ TEST_CASE("Test Clock Rate calculation") {
     auto& mem = mock::get_global_memory();
 
     mem.reset();
+    mem.set_value_at(ckgr_mor, 8);
+    mem.set_value_at(ckgr_pllar, 0x3f00);
+    mem.set_value_at(ckgr_pllbr, 0x3f00);
     mem.set_value_at(pmc_mckr, 1);
 
     SECTION("Slow Clocks") {
@@ -285,6 +304,35 @@ TEST_CASE("Test Clock Rate calculation") {
 
         mem.set_value_at(pmc_mckr, (7 << 4) | 1);
         CHECK(clk_get_rate(SAM4S_CLK_MCK) == base_mcr_rate / 3);
+        CHECK(clk_get_rate(SAM4S_CLK_HCLK) == base_mcr_rate / 3);
+    }
+
+    SECTION("Test Peripheral Clocks") {
+        RegEDS pmc_pcr0{pmc_pcer0};
+        RegEDS pmc_pcr1{pmc_pcer1};
+
+        RegEDS::install(mem, &pmc_pcr0);
+        RegEDS::install(mem, &pmc_pcr1);
+
+        // Self test: main clock is configured
+        auto mck_rate = clk_get_rate(SAM4S_CLK_MCK);
+        REQUIRE(mck_rate > 0);
+
+        CHECK(clk_get_rate(SAM4S_CLK_PCK) == mck_rate);
+        CHECK(clk_get_rate(SAM4S_CLK_PIDCK(15)) == 0);
+
+        CHECK(clk_request(SAM4S_CLK_PIDCK(15)) >= 0);
+        CHECK(clk_request(SAM4S_CLK_PIDCK(31)) >= 0);
+        CHECK((mem.get_value_at(pmc_pcer0 + 8) & (1 << 15)) == (1 << 15));
+        CHECK(clk_get_rate(SAM4S_CLK_PIDCK(15)) == mck_rate);
+        CHECK(clk_get_rate(SAM4S_CLK_PIDCK(31)) == mck_rate);
+
+        CHECK(clk_request(SAM4S_CLK_PIDCK(33)) >= 0);
+        CHECK(clk_request(SAM4S_CLK_PIDCK(32)) >= 0);
+        CHECK((mem.get_value_at(pmc_pcer1 + 8) & (1 << 1)) == (1 << 1));
+        CHECK((mem.get_value_at(pmc_pcer1 + 8) & (1 << 0)) == (1 << 0));
+        CHECK(clk_get_rate(SAM4S_CLK_PIDCK(33)) == mck_rate);
+        CHECK(clk_get_rate(SAM4S_CLK_PIDCK(32)) == mck_rate);
     }
 
     SECTION("Test PLLs") {

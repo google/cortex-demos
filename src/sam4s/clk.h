@@ -1,5 +1,7 @@
 #pragma once
 
+#define SAM4S_CLK_PIDCK(N)       (SAM4S_CLK_PID0CK + (N))
+
 enum clock_id {
     /* Embedded 32kHz RC Oscillator */
     SAM4S_CLK_XTAL_RC,
@@ -28,6 +30,15 @@ enum clock_id {
     SAM4S_CLK_FCLK,
     /* Master Clock */
     SAM4S_CLK_MCK,
+
+    /* Common Peripherals Clock */
+    SAM4S_CLK_PCK,
+
+    /* First peripheral clock.
+     * This one is actually permanently enabled.
+     * The clocks that can be enabled/disabled start at ID8
+     */
+    SAM4S_CLK_PID0CK,
 };
 
 #ifdef __cplusplus
