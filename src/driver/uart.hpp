@@ -11,6 +11,7 @@ class UART : virtual public Peripheral {
         enum class PARITY {
             NONE,
             EVEN,
+            ODD,
         };
 
         enum class STOP {

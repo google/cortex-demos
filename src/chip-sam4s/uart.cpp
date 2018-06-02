@@ -42,6 +42,7 @@ class UART : public ::driver::UART {
 
             //enable transmitter and receiver
             raw_write32(base_ + kCrOffset, (kCrTxEn | kCrRxEn));
+            set_parity(PARITY::NONE);
 
             configured_ = true;
             return 0;
@@ -67,10 +68,37 @@ class UART : public ::driver::UART {
             return br;
         }
 
+        int set_parity(PARITY parity) override {
+            uint32_t parity_value = 0;
+            uint32_t mr = raw_read32(base_ + kMrOffset);
+            switch (parity) {
+                case PARITY::NONE:
+                    parity_value = 4;
+                    break;
+                case PARITY::EVEN:
+                    parity_value = 0;
+                    break;
+                case PARITY::ODD:
+                    parity_value = 1;
+                    break;
+            }
+
+            mr &= ~(kMrParMask);
+            mr |= (parity_value << kMrParShift);
+
+            raw_write32(base_ + kMrOffset, mr);
+
+            return 0;
+        }
+
     private:
         static constexpr auto kCrOffset = 0;
         static constexpr uint32_t kCrTxEn = (1 << 6);
         static constexpr uint32_t kCrRxEn = (1 << 4);
+
+        static constexpr auto kMrOffset = 4;
+        static constexpr uint32_t kMrParMask = 7;
+        static constexpr uint32_t kMrParShift = 9;
 
         static constexpr auto kBrgrOffset = 0x20;
 
