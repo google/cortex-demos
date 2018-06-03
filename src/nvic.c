@@ -46,10 +46,17 @@
 
 static irq_handler_func_t __attribute__((aligned(CHIP_IRQ_TABLE_ALIGN))) vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
 
+void blocking_handler(void) {
+    while (1);
+}
+
 void nvic_init(void) {
     memset(vector_table, 0, sizeof(vector_table));
     /* Only relocate top of the stack and reset handler */
     syscontrol_relocate_vt((ubase_t)vector_table, 1);
+    for (int i = IRQ_NMI; i < IRQ_IRQ0; ++i) {
+        nvic_set_handler(i, blocking_handler);
+    }
 }
 
 int nvic_set_handler(int irqn, irq_handler_func_t handler_func) {
