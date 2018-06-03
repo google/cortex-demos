@@ -48,6 +48,7 @@ hwenv.AppendUnique(
             '-lc_nano', '-lgcc',
             '-Wl,--end-group',
             '-Wl,--gc-sections',
+            '-Wl,--undefined=uxTopUsedPriority',
             ]
         )
 
