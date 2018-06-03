@@ -90,7 +90,8 @@ TEST_CASE("TEST UARTE API") {
         // CTS is left unconfigured, so should be disconnected.
         auto cts = pinctrl::get_pin(pinctrl::function::UARTE0_CTS);
         CHECK(cts < 0);
-        CHECK(mem.get_value_at(uarte0_base + psel_cts) == (1 << 31));
+        CAPTURE(mem.get_value_at(uarte0_base + psel_cts));
+        CHECK((mem.get_value_at(uarte0_base + psel_cts) & (1 << 31)) > 0);
 
         auto rts = pinctrl::get_pin(pinctrl::function::UARTE0_RTS);
         CHECK(rts >= 0);

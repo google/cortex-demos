@@ -62,15 +62,7 @@ class UARTE : public UART, public nrf52::Peripheral {
 
             using pf = pinctrl::function;
             auto func_group = base_ == periph::id_to_base(kUarte0ID) ? pf::UARTE0_GROUP : pf::UARTE1_GROUP;
-
-            for (int i = pf::UARTE_RTS; i <= pf::UARTE_RXD; ++i) {
-                auto pin_sel = pinctrl::request_function(func_group + i);
-                uint32_t psel_value = kPselDisconnect;
-                if (pin_sel > 0) {
-                    psel_value = pin_sel & kPselMask;
-                }
-                raw_write32(base_ + kPselZero + 4 * i, psel_value);
-            }
+            pinctrl::request_function(func_group);
 
             raw_writeptr(base_ + kRxdPtr, rx_buffer_);
             raw_write32(base_ + kRxdMaxCnt, sizeof(rx_buffer_));
