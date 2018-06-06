@@ -21,6 +21,16 @@
 
 namespace nrf52 {
 
+enum {
+    CLOCK,
+    POWER,
+    RADIO,
+    UART0,
+    UARTE0,
+    TWIM0,
+    TWIM1,
+};
+
 class Peripheral : virtual public driver::Peripheral {
     public:
         Peripheral() {};
