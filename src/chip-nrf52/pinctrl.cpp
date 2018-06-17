@@ -27,7 +27,14 @@ using pf = pinctrl::function;
 constexpr uint32_t uarte0_base = 0x40002000;
 constexpr uint32_t uarte1_base = 0x40028000;
 
-constexpr uint32_t psel_offset(int func) {
+constexpr uint32_t twim0_base = 0x40003000;
+constexpr uint32_t twim1_base = 0x40004000;
+
+constexpr uint32_t twim_psel_offset(int func) {
+    return 0x504 + 4 * func;
+}
+
+constexpr uint32_t uarte_psel_offset(int func) {
     return 0x504 + 4 * func;
 }
 
@@ -37,36 +44,50 @@ void _configure_uarte(uint32_t base, int group) {
     if (rts != -1) {
         gpio_set_option(0, (1 << rts), GPIO_OPT_OUTPUT);
         gpio_set(0, (1 << rts));
-        raw_write32(base + psel_offset(pf::UARTE_RTS), rts);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_RTS), rts);
     } else {
-        raw_write32(base + psel_offset(pf::UARTE_RTS), pin_disconnect_value);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_RTS), pin_disconnect_value);
     }
 
     auto txd = pinctrl::get_pin(pf::UARTE_TXD + group);
     if (txd != -1) {
         gpio_set_option(0, (1 << txd), GPIO_OPT_OUTPUT);
         gpio_set(0, (1 << txd));
-        raw_write32(base + psel_offset(pf::UARTE_TXD), txd);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_TXD), txd);
     } else {
-        raw_write32(base + psel_offset(pf::UARTE_TXD), pin_disconnect_value);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_TXD), pin_disconnect_value);
     }
 
     auto cts = pinctrl::get_pin(pf::UARTE_CTS + group);
     if (cts != -1) {
         gpio_set_option(0, (1 << cts), GPIO_OPT_INPUT);
-        raw_write32(base + psel_offset(pf::UARTE_CTS), cts);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_CTS), cts);
     } else {
-        raw_write32(base + psel_offset(pf::UARTE_CTS), pin_disconnect_value);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_CTS), pin_disconnect_value);
     }
 
     auto rxd = pinctrl::get_pin(pf::UARTE_RXD + group);
     if (rxd != -1) {
         gpio_set_option(0, (1 << rxd), GPIO_OPT_INPUT);
-        raw_write32(base + psel_offset(pf::UARTE_RXD), rxd);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_RXD), rxd);
     } else {
-        raw_write32(base + psel_offset(pf::UARTE_RXD), pin_disconnect_value);
+        raw_write32(base + uarte_psel_offset(pf::UARTE_RXD), pin_disconnect_value);
     }
 }
+
+int _configure_twim(uint32_t base, int group) {
+    auto scl = pinctrl::get_pin(pf::TWIM_SCL + group);
+    auto sda = pinctrl::get_pin(pf::TWIM_SDA + group);
+    if (scl == -1 || sda == -1) {
+        return -1;
+    }
+
+    raw_write32(base + twim_psel_offset(pf::TWIM_SCL), scl);
+    raw_write32(base + twim_psel_offset(pf::TWIM_SDA), sda);
+
+    return 0;
+}
+
 
 }  // namespace
 
@@ -80,12 +101,18 @@ int request_function(int pin_function) {
     int ret = pin;
     switch (pin_function) {
         case pf::UARTE0_GROUP:
-            _configure_uarte(uarte0_base, UARTE0_GROUP);
+            _configure_uarte(uarte0_base, pin_function);
             ret = 0;
             break;
         case pf::UARTE1_GROUP:
-            _configure_uarte(uarte1_base, UARTE1_GROUP);
+            _configure_uarte(uarte1_base, pin_function);
             ret = 0;
+            break;
+        case pf::TWIM0_GROUP:
+            ret = _configure_twim(twim0_base, pin_function);
+            break;
+        case pf::TWIM1_GROUP:
+            ret = _configure_twim(twim1_base, pin_function);
             break;
         case pf::UARTE0_RXD:
         case pf::UARTE1_RXD:

@@ -49,6 +49,22 @@ PINCTRL_ENTRY_LIST_START
         .function = function::SAADC_CHAN2_POS,
         .pin = saadc::AIN5,
     },
+    {
+        .function = function::TWIM0_SCL,
+        .pin = 15,
+    },
+    {
+        .function = function::TWIM0_SDA,
+        .pin = 16,
+    },
+    {
+        .function = function::TWIM1_SCL,
+        .pin = 15,
+    },
+    {
+        .function = function::TWIM1_SDA,
+        .pin = 16,
+    },
 PINCTRL_ENTRY_LIST_END;
 
 PINCTRL_DEFINE_BOARD_CONFIG;

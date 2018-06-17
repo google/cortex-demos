@@ -21,7 +21,18 @@ class TWIM : public I2C, public nrf52::Peripheral {
         TWIM(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id) {}
 
         int request() override {
-            return 0;
+            int ret = 0;
+            if (irq_n_ == kTwim0ID) {
+                ret = pinctrl::request_function(pinctrl::function::TWIM0_GROUP);
+            } else if (irq_n_ == kTwim1ID) {
+                ret = pinctrl::request_function(pinctrl::function::TWIM1_GROUP);
+            }
+
+            if (ret < 0) {
+                return ret;
+            }
+
+            return ret;
         }
 };
 

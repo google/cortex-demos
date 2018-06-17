@@ -39,6 +39,8 @@ enum function {
     UARTE_RXD = 4,
     SAADC_CHAN_POS = 1,
     SAADC_CHAN_NEG = 2,
+    TWIM_SCL = 1,
+    TWIM_SDA = 2,
 
     MIN_PIN_FUNCTION,
     UARTE0_GROUP,
@@ -85,6 +87,14 @@ enum function {
     SAADC_CHAN7_NEG,
 
     SAADC_CHAN_LAST_GROUP = SAADC_CHAN7_GROUP,
+
+    TWIM0_GROUP,
+    TWIM0_SCL,
+    TWIM0_SDA,
+
+    TWIM1_GROUP,
+    TWIM1_SCL,
+    TWIM1_SDA,
 
     MAX_PIN_FUNCTION,
 };
