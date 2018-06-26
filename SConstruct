@@ -20,6 +20,8 @@ def get_chip_apps(chip):
         return ['nvic-hwtest',
                 'freertos-systick-blinker',
                 ]
+    elif chip.startswith('same5'):
+        return ['nvic-hwtest']
 
 env = Environment(
         CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
@@ -27,13 +29,10 @@ env = Environment(
         CFLAGS = ['-std=c11', '-Wstrict-prototypes'],
         CXXFLAGS = ['-std=c++17'],
         CPPPATH = ['.', '#/src'],
+        ENV = {'PATH': os.environ['PATH']},
         )
 
-supported_chips = 'nrf52 sam4s'.split()
-if 'DEMOS_CHIP' in os.environ:
-    CHIP = os.environ['DEMOS_CHIP']
-else:
-    CHIP = supported_chips[0]
+supported_chips = 'nrf52 sam4s same5'.split()
 
 # Build libraries for all supported chips
 hwenv = env.Clone()

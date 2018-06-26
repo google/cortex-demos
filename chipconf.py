@@ -24,7 +24,7 @@ def configure_arm(env):
 def configure_chip(env, chipname):
     arch_flags = []
     arch_defines = []
-    if chipname.lower().startswith('nrf52'):
+    if any(chipname.lower().startswith(prefix) for prefix in 'nrf52 same5 samd5'):
         configure_arm(env)
         arch_flags = [
             '-mthumb',
@@ -47,7 +47,7 @@ def configure_chip(env, chipname):
     env.AppendUnique(CPPDEFINES=arch_defines)
 
 def get_freertos_port(chip):
-    if chip.lower().startswith('nrf52'):
+    if any(chip.lower().startswith(prefix) for prefix in 'nrf52 same5 samd5'):
         return 'ARM_CM4F'
     elif chip.lower().startswith('sam4s'):
         return 'ARM_CM3'
