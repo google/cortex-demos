@@ -89,7 +89,7 @@ app_test_env = test_env.Clone()
 app_test_env.AppendUnique(LIBS=test_lib)
 
 app_env = hwenv.Clone()
-app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'src', 'FreeRTOS', 'Source', 'include')])
+app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include')])
 
 for chip in supported_chips:
     chip_hwenv = make_chip_hwenv(app_env, chip)
@@ -99,9 +99,9 @@ for chip in supported_chips:
         app_hwenv = chip_hwenv.Clone()
         app_hwenv.AppendUnique(CPPPATH=[
             os.path.join('#', 'apps', app),
-            os.path.join('#', 'src', 'FreeRTOS', 'Source', 'portable', 'GCC', freertos_port_name),
+            os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'portable', 'GCC', freertos_port_name),
             ])
         SConscript(os.path.join('apps', app, 'SConscript'),
                 variant_dir=os.path.join('build', 'apps', chip, app),
-                exports=dict(env=app_hwenv, freertos_path='#/src/FreeRTOS',
+                exports=dict(env=app_hwenv, freertos_path='#/third_party/FreeRTOS',
                     freertos_port=freertos_port_name, test_env=app_test_env))
