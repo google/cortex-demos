@@ -8,3 +8,5 @@ without using real hardware. The idea of being testable is what drives most of t
 The OS is actually just a driver model, it uses [FreeRTOS](https://freertos.org) for scheduling
 and IPC.
 
+** This is not an officially supported Google product **
+
