@@ -77,7 +77,7 @@ for chip in supported_chips:
     SConscript('src/SConscript', exports=dict(hwenv=chip_hwenv, native_env=native_env))
 
 test_env = native_env.Clone()
-test_env.AppendUnique(LIBPATH='#/src')
+test_env.AppendUnique(LIBPATH='#/src', CPPPATH='#')
 
 for chip in supported_chips:
     test_lib = SConscript('tests/SConscript',

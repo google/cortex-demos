@@ -16,7 +16,7 @@
 
 #include "mock_memio.hpp"
 
-#include "catch.hpp"
+#include "third_party/catch2/catch.hpp"
 
 namespace {
 
