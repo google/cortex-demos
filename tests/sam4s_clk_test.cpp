@@ -362,9 +362,6 @@ TEST_CASE("Test Clock Rate calculation") {
         CHECK(clk_get_rate(SAM4S_CLK_PLLACK) == 0);
         CHECK(clk_get_rate(SAM4S_CLK_PLLBCK) == 0);
 
-        constexpr uint32_t pmc_sr_locka = (1 << 1);
-        constexpr uint32_t pmc_sr_lockb = (1 << 2);
-
         uint32_t mul = 13;
         mem.set_value_at(ckgr_pllar, (mul << 16));
         mem.set_value_at(ckgr_pllbr, (mul << 16));

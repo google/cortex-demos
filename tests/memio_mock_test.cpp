@@ -94,7 +94,7 @@ TEST_CASE("Test Memory Journal") {
     mock::Memory mem;
 
     constexpr auto test_addr = 0x2000 * 0x10000;
-    CHECK(mem.read16(0x20000000) == 0);
+    CHECK(mem.read16(test_addr) == 0);
 
     const auto& journal = mem.get_journal();
     const auto entry_it = std::find_if(journal.begin(), journal.end(),
