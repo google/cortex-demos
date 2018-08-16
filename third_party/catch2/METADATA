@@ -1,0 +1,17 @@
+name: "C++ Test Framework"
+description:
+  "Catch2 stands for C++ Automated Test Cases in a Header and is a"
+  " multi-paradigm test framework for C++. which also supports"
+  " Objective-C (and maybe C). It is primarily distributed as a single"
+  " header file, although certain extensions may require additional headers."
+
+third_party {
+  url {
+    type: GIT
+    value: "https://github.com/catchorg/Catch2"
+  }
+  version: "2.3.0"
+  last_upgrade_date { year: 2018 month: 8 day: 16 }
+  license_type: NOTICE
+  local_modifications: "None."
+}

@@ -1,0 +1,14 @@
+name: "FreeRTOS: Free Real Time Operating System"
+description:
+    "De-facto Standard and Cross Platform RTOS kernel"
+
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "https://freertos.org"
+  }
+  version: "10.0.1"
+  last_upgrade_date { year: 2018 month: 8 day: 16 }
+  license_type: NOTICE
+  local_modifications: "Added SConscript file to make it buildable with SCons"
+}
