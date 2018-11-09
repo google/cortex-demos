@@ -14,4 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find . -name run_all_tests -exec {} \;
+TESTS=$(find . -name run_all_tests)
+
+for t in $TESTS; do
+    echo $t;
+    $t;
+done
