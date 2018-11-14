@@ -25,10 +25,14 @@ struct entry pinconfig_entries[] = {
         .function = function::UARTE0_RXD,
         .pin = 13,
     },
+    /*
+     * Leave this unconfigured, to make sure
+     * that it will be disconnected.
     {
         .function = function::UARTE0_CTS,
         .pin = 12,
     },
+    */
     {
         .function = function::UARTE0_RTS,
         .pin = 14,

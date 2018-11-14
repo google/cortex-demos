@@ -65,9 +65,11 @@ class UARTE : public UART, public nrf52::Peripheral {
 
             for (int i = pf::UARTE_RTS; i <= pf::UARTE_RXD; ++i) {
                 auto pin_sel = pinctrl::request_function(func_group + i);
+                uint32_t psel_value = kPselDisconnect;
                 if (pin_sel > 0) {
-                    raw_write32(base_ + kPselZero + 4 * i, (pin_sel & kPselMask));
+                    psel_value = pin_sel & kPselMask;
                 }
+                raw_write32(base_ + kPselZero + 4 * i, psel_value);
             }
 
             raw_writeptr(base_ + kRxdPtr, rx_buffer_);
@@ -79,10 +81,10 @@ class UARTE : public UART, public nrf52::Peripheral {
             set_baudrate(kDefaultRate);
 
             // No Hw Flow, no parity, one stop bit
-            uint32_t config_value = 1;
+            uint32_t config_value = 0;
 
             if ((pinctrl::get_pin(func_group + pf::UARTE_CTS) > 0)
-                    || (pinctrl::get_pin(func_group + pf::UARTE_CTS) > 0)) {
+                    && (pinctrl::get_pin(func_group + pf::UARTE_RTS) > 0)) {
                 config_value |= kConfigHwFlow;
             }
 
@@ -166,6 +168,7 @@ class UARTE : public UART, public nrf52::Peripheral {
         static constexpr auto kPselRxd = 0x514;
         static constexpr auto kPselMask = 0x3f;
         static constexpr auto kPselZero = kPselRts - 4;
+        static constexpr uint32_t kPselDisconnect = (1 << 31);
 
         static constexpr auto kRxdPtr = 0x534;
         static constexpr auto kRxdMaxCnt = 0x538;

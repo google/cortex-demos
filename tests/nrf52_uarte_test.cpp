@@ -87,9 +87,10 @@ TEST_CASE("TEST UARTE API") {
         CHECK(mem.get_value_at(uarte0_base + 0x500) == 8);
 
         // Check that the pins were configured
+        // CTS is left unconfigured, so should be disconnected.
         auto cts = pinctrl::get_pin(pinctrl::function::UARTE0_CTS);
-        CHECK(cts >= 0);
-        CHECK((mem.get_value_at(uarte0_base + psel_cts) & 0x1f) == cts);
+        CHECK(cts < 0);
+        CHECK(mem.get_value_at(uarte0_base + psel_cts) == (1 << 31));
 
         auto rts = pinctrl::get_pin(pinctrl::function::UARTE0_RTS);
         CHECK(rts >= 0);
@@ -119,8 +120,8 @@ TEST_CASE("TEST UARTE API") {
         // Test default configuration
         // This is the constant for 115200
         CHECK(mem.get_value_at(uarte0_base + baudrate) == 0x01d60000);
-        // Hardware flow control, no parity, One stop bit
-        CHECK(mem.get_value_at(uarte0_base + config) == 0x11);
+        // No hardware flow control, no parity, One stop bit
+        CHECK(mem.get_value_at(uarte0_base + config) == 0);
 
         SECTION("Test Write") {
             std::string hello{"Hello!"};

@@ -47,7 +47,7 @@ TEST_CASE("Test UARTE pins configuration") {
     CHECK(pin == 13);
 
     pin = pinctrl::get_pin(pf::UARTE0_CTS);
-    CHECK(pin == 12);
+    CHECK(pin < 0);
 
     auto f_pin = pinctrl::request_function(pf::UARTE0_RXD);
     CHECK(f_pin == 13);
