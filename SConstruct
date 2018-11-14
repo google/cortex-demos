@@ -31,6 +31,7 @@ def get_chip_apps(chip):
                 'rtc-blinker',
                 'freertos-blinker',
                 'saadc-basic',
+                'feather-blinker',
                 ]
     elif chip.startswith('sam4s'):
         return ['nvic-hwtest',
