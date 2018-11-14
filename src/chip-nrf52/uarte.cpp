@@ -31,7 +31,7 @@ namespace {
 
 // Offset for various registers
 
-struct rate_config {
+const struct rate_config {
     unsigned int rate;
     uint32_t conf_value;
     unsigned int actual_rate;
