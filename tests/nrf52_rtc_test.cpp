@@ -16,8 +16,6 @@
 
 #include "third_party/catch2/catch.hpp"
 
-#include <iostream>
-
 #include "mock_memio.hpp"
 
 #include "nvic.h"

@@ -17,6 +17,7 @@
 #include "driver/timer.hpp"
 
 #include "clk.h"
+#include "cutils.h"
 #include "memio.h"
 #include "nrf52/clk.h"
 #include "nrf52/peripheral.hpp"
@@ -136,6 +137,58 @@ void rtc2_irq_handler() {
     rtc2.handle_events();
 }
 
+constexpr unsigned int kNumTimerEvents = 6;
+
+class TimerCounter : public Timer, public nrf52::Peripheral {
+    public:
+        enum Task {
+            START,
+            STOP,
+            COUNT,
+            CLEAR,
+            SHUTDOWN,
+        };
+
+        TimerCounter(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
+
+        void start() override {
+            trigger_task(Task::START);
+        }
+
+        void stop() override {
+            trigger_task(Task::STOP);
+        }
+
+        unsigned int get_rate() const override {
+            unsigned int presc = raw_read32(base_ + kPrescalerOffset);
+
+            return kInputRate / (1 << presc);
+        }
+
+        void set_prescaler(unsigned int presc) override {
+            unsigned int real_presc = MIN(presc, kMaxPrescaler);
+            raw_write32(base_ + kPrescalerOffset, real_presc);
+        }
+
+        void enable_tick_interrupt() override {}
+
+
+    private:
+        static constexpr unsigned kMaxPrescaler = 9;
+        static constexpr unsigned int kInputRate = 16 * 1000 * 1000;
+
+        static constexpr uint32_t kPrescalerOffset = 0x510;
+
+        evt_handler_func_t evt_handler_storage_[kNumTimerEvents];
+
+};
+
+TimerCounter timer0{8};
+TimerCounter timer1{9};
+TimerCounter timer2{10};
+TimerCounter timer3{26};
+TimerCounter timer4{27};
+
 }  // namespace
 
 Timer* Timer::get_by_id(ID id) {
@@ -149,6 +202,21 @@ Timer* Timer::get_by_id(ID id) {
             break;
         case ID::RTC2:
             ret = &rtc2;
+            break;
+        case ID::TIMER0:
+            ret = &timer0;
+            break;
+        case ID::TIMER1:
+            ret = &timer1;
+            break;
+        case ID::TIMER2:
+            ret = &timer2;
+            break;
+        case ID::TIMER3:
+            ret = &timer3;
+            break;
+        case ID::TIMER4:
+            ret = &timer4;
             break;
         default:
             break;
