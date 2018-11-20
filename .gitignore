@@ -7,3 +7,4 @@ run_*_tests
 *.hex
 *.bin
 build/*
+ctags
