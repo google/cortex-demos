@@ -31,8 +31,34 @@ class BleAir : public ble::Air {
             radio_->set_mode(Radio::Mode::BLE);
         }
 
+        int set_channel(unsigned index) {
+            if (index >= kNumRFChannels) {
+                return -1;
+            }
+
+            auto freq_mhz = 2400;
+            if (index < 11) {
+                freq_mhz += 4 + index * 2;
+            } else if (index < 37) {
+                freq_mhz += 6 + index * 2;
+            } else if (index == 37) {
+                freq_mhz += 2;
+            } else if (index == 38) {
+                freq_mhz += 26;
+            } else {
+                freq_mhz += 80;
+            }
+
+            radio_->set_frequency(freq_mhz);
+            radio_->set_white_iv((1 << 6) | index);
+
+            return 0;
+        }
+
     private:
         Radio* radio_;
+
+        static constexpr auto kNumRFChannels = 40;
 };
 
 }  // namespace nrf52

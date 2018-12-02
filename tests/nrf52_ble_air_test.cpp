@@ -16,10 +16,11 @@
 
 #include "third_party/catch2/catch.hpp"
 
+#include <vector>
+
 #include "mock_memio.hpp"
 
 #include "ble/air.hpp"
-
 #include "nrf52/radio.hpp"
 
 using nrf52::Radio;
@@ -45,6 +46,21 @@ TEST_CASE("Phy Test") {
     }
 
     SECTION("Test Channel configuration") {
+        CHECK(air->set_channel(40) < 0);
+        const std::vector<unsigned> channel_freq {
+            4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24,
+            28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50,
+            52, 54, 56, 58, 60, 62, 64, 66, 68, 70,
+            72, 74, 76, 78, 2, 26, 80
+        };
 
+        REQUIRE(channel_freq.size() == 40);
+
+        for (unsigned i = 0; i < channel_freq.size(); ++i) {
+            CHECK(air->set_channel(i) >= 0);
+            CHECK(get_reg_value(0x508) == channel_freq[i]);
+            // Check Data Whitening Polynomial Configuration
+            CHECK(get_reg_value(0x554) == ((1 << 6) | i));
+        }
     }
 }

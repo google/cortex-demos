@@ -22,6 +22,13 @@ class Air {
     public:
         Air() {}
 
+        /** @brief Set BLE Link Layer Channel Index.
+         *
+         * @param[index] Link Layer Channel Index (0-39).
+         *  Note, this is *not* RF Phy Channel.
+         */
+        virtual int set_channel(unsigned index) = 0;
+
     static Air* request();
 };
 
