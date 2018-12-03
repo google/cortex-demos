@@ -26,6 +26,14 @@
 using nrf52::Radio;
 constexpr uint32_t radio_base = 0x40001000;
 
+namespace {
+
+constexpr uint32_t shift_mask(uint32_t value, unsigned int shift, uint32_t mask) {
+    return ((value >> shift) & mask);
+}
+
+}  // namespace
+
 TEST_CASE("Phy Test") {
     auto& mem = mock::get_global_memory();
     mem.reset();
@@ -40,9 +48,31 @@ TEST_CASE("Phy Test") {
     SECTION("Phy Init Checks") {
         // Check that the mode is set to BLE
         CHECK(get_reg_value(0x510) == Radio::Mode::BLE);
-        // TODO: Test CRC Configuration
-        // TODO: Test Interframe spacing configuration
+        // Test preamble size.
+        CHECK((get_reg_value(0x514) & (1 << 24)) == 0);
+
+        // Check endianness and that the whitening is enabled.
+        constexpr uint32_t ew_mask = (1 << 24) | (1 << 25);
+        constexpr uint32_t ew_expected = (1 << 25);
+        CHECK((get_reg_value(0x518) & ew_mask) == ew_expected);
+        // Test Base addr len
+        CHECK(shift_mask(get_reg_value(0x518), 16, 7) == 3);
+
+        // Test CRC Configuration
+        constexpr uint32_t crc_len_mask = 3;
+        CHECK((get_reg_value(0x534) & crc_len_mask) == 3);
+        // Check that CRC does not include the packet address.
+        CHECK((get_reg_value(0x534) & (1 << 8)) > 0);
+        // Check CRC polynomial
+        CHECK(get_reg_value(0x538) == 0x65b);
+
+        // Test Interframe spacing configuration
+        CHECK(get_reg_value(0x544) == 150);
+
         // TODO: Test Center frequency and idle transmission configuration
+        // TODO: Check that Fast ramp up is enabled. Not needed for BLE,
+        //  but maybe more efficient for nrf52.
+
     }
 
     SECTION("Test Channel configuration") {

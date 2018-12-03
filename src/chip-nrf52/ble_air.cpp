@@ -29,6 +29,10 @@ class BleAir : public ble::Air {
 
         void init_ble() {
             radio_->set_mode(Radio::Mode::BLE);
+            radio_->set_ifs(ble::kInterFrameSpaceUs);
+            radio_->set_whitening(true);
+            radio_->configure_crc(3, true, ble::kCrcPoly);
+            radio_->set_base_addr_len(3);
         }
 
         int set_channel(unsigned index) {

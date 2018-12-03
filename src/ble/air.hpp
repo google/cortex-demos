@@ -18,6 +18,9 @@
 
 namespace ble {
 
+constexpr unsigned kInterFrameSpaceUs = 150;
+constexpr unsigned kCrcPoly = 0x65b;
+
 class Air {
     public:
         Air() {}
