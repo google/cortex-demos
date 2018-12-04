@@ -16,10 +16,13 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace ble {
 
 constexpr unsigned kInterFrameSpaceUs = 150;
 constexpr unsigned kCrcPoly = 0x65b;
+constexpr uint32_t kAdvAccessAddress = 0x8e89bed6;
 
 class Air {
     public:
@@ -32,7 +35,16 @@ class Air {
          */
         virtual int set_channel(unsigned index) = 0;
 
-    static Air* request();
+        /** @brief Set Access Address to be used in
+         *      the next transmission/reception.
+         *
+         *  This address is only for non-advertising packets.
+         *  For advertising channel packets the address defined
+         *  by BLE standard will be used.
+         */
+        virtual void set_access_addr(uint32_t addr) = 0;
+
+        static Air* request();
 };
 
 }  // namespace ble

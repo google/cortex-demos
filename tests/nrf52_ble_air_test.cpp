@@ -57,6 +57,10 @@ TEST_CASE("Phy Test") {
         CHECK((get_reg_value(0x518) & ew_mask) == ew_expected);
         // Test Base addr len
         CHECK(shift_mask(get_reg_value(0x518), 16, 7) == 3);
+        // This driver permanently configures Advertising Channel Access Address
+        // at index 0 and uses index 1 for all other addresses.
+        CHECK(shift_mask(get_reg_value(0x51c), 8, 0xffffff) == (ble::kAdvAccessAddress & 0xffffff));
+        CHECK(shift_mask(get_reg_value(0x524), 0, 0xff) == (ble::kAdvAccessAddress >> 24));
 
         // Test CRC Configuration
         constexpr uint32_t crc_len_mask = 3;
@@ -72,6 +76,7 @@ TEST_CASE("Phy Test") {
         // TODO: Test Center frequency and idle transmission configuration
         // TODO: Check that Fast ramp up is enabled. Not needed for BLE,
         //  but maybe more efficient for nrf52.
+
 
     }
 
@@ -92,5 +97,17 @@ TEST_CASE("Phy Test") {
             // Check Data Whitening Polynomial Configuration
             CHECK(get_reg_value(0x554) == ((1 << 6) | i));
         }
+    }
+
+    SECTION("Test Address Setting") {
+        constexpr uint32_t test_addr = 0xdead1254;
+        air->set_access_addr(test_addr);
+
+        CHECK(shift_mask(get_reg_value(0x520), 8, 0xffffff) == (test_addr & 0xffffff));
+        CHECK(shift_mask(get_reg_value(0x524), 8, 0xff) == (test_addr >> 24));
+
+        // Check that we didn't screw up the Advertising address.
+        CHECK(shift_mask(get_reg_value(0x51c), 8, 0xffffff) == (ble::kAdvAccessAddress & 0xffffff));
+        CHECK(shift_mask(get_reg_value(0x524), 0, 0xff) == (ble::kAdvAccessAddress >> 24));
     }
 }

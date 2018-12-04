@@ -33,9 +33,11 @@ class BleAir : public ble::Air {
             radio_->set_whitening(true);
             radio_->configure_crc(3, true, ble::kCrcPoly);
             radio_->set_base_addr_len(3);
+            radio_->set_addr_base(0, ble::kAdvAccessAddress << 8);
+            radio_->set_addr_prefix(0, ble::kAdvAccessAddress >> 24);
         }
 
-        int set_channel(unsigned index) {
+        int set_channel(unsigned index) override {
             if (index >= kNumRFChannels) {
                 return -1;
             }
@@ -57,6 +59,11 @@ class BleAir : public ble::Air {
             radio_->set_white_iv((1 << 6) | index);
 
             return 0;
+        }
+
+        void set_access_addr(uint32_t addr) override {
+            radio_->set_addr_base(1, addr << 8);
+            radio_->set_addr_prefix(1, addr >> 24);
         }
 
     private:
