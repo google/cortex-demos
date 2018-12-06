@@ -73,6 +73,11 @@ TEST_CASE("Phy Test") {
         // Test Interframe spacing configuration
         CHECK(get_reg_value(0x544) == 150);
 
+        // Test packet configuration
+        CHECK(shift_mask(get_reg_value(0x514), 0, 0xf) == 8);
+        CHECK((get_reg_value(0x514) & (1 << 8)) > 0);
+        CHECK(shift_mask(get_reg_value(0x514), 16, 0xf) == 0);
+
         // TODO: Test Center frequency and idle transmission configuration
         // TODO: Check that Fast ramp up is enabled. Not needed for BLE,
         //  but maybe more efficient for nrf52.

@@ -35,6 +35,9 @@ class BleAir : public ble::Air {
             radio_->set_base_addr_len(3);
             radio_->set_addr_base(0, ble::kAdvAccessAddress << 8);
             radio_->set_addr_prefix(0, ble::kAdvAccessAddress >> 24);
+            // Note: This configuration only supports Uncoded PHY,
+            // which is the only thing supported by nRF52832.
+            radio_->configure_packet(8, 1, 0);
         }
 
         int set_channel(unsigned index) override {
