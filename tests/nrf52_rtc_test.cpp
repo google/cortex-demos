@@ -40,6 +40,8 @@ TEST_CASE("RTC API") {
     mem.reset();
 
     const auto& test_start_stop = [&mem](driver::Timer* timer, uint32_t base) {
+        // Make LFCLK started event read as 1
+        mem.set_value_at(clock_base + 0x104, 1);
         timer->start();
         CHECK(mem.get_value_at(base, 0) == 1);
 

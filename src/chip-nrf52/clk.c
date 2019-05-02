@@ -44,6 +44,14 @@ enum {
 };
 
 enum {
+    EVT_HFCLKSTARTED,
+    EVT_LFCLKSTARTED,
+    EVT_RESERVED,
+    EVT_DONE,
+    EVT_CTTO,
+};
+
+enum {
     LFCLK_SRC_RC,
     LFCLK_SRC_XTAL,
     LFCLK_SRC_SYNTH,
@@ -51,9 +59,15 @@ enum {
     LFCLK_SRC_LAST,
 };
 
+static inline void busy_wait_and_clear_event(int evt) {
+    const uint32_t evt_addr = CLOCK_BASE + 0x100 + evt * 4;
+    while (!(raw_read32(evt_addr)));
+    raw_write32(evt_addr, 0);
+}
+
 static void start_lfclk_sync(void) {
     raw_write32(TASK(TASK_LFCLKSTART), 1);
-    while (!(raw_read32(LFCLKSTAT) & LFCLKSTAT_RUNNING));
+    busy_wait_and_clear_event(EVT_LFCLKSTARTED);
 }
 
 int clk_request(int clock_id) {
@@ -67,6 +81,13 @@ int clk_request(int clock_id) {
         case NRF52_LFCLK_XTAL:
             raw_write32(LFCLKSRC, LFCLK_SRC_XTAL);
             start_lfclk_sync();
+            ret = 0;
+            break;
+        case NRF52_HFCLK_RC:
+        case NRF52_HFCLK_XTAL:
+            /* FIXME: Waht if this oscillator already running? */
+            raw_write32(TASK(TASK_HFCLKSTART), 1);
+            busy_wait_and_clear_event(EVT_HFCLKSTARTED);
             ret = 0;
             break;
     }

@@ -19,6 +19,8 @@
 /* This file defines clock constants for NRF52 chip family. */
 
 enum clock_id {
+    NRF52_HFCLK_RC,
+    NRF52_HFCLK_XTAL,
     NRF52_LFCLK_RC,
     NRF52_LFCLK_XTAL,
     NRF52_LFCLK_XTAL_EXT,
