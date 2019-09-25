@@ -20,7 +20,7 @@
 
 namespace pinctrl {
 
-struct entry pinconfig_entries[] = {
+PINCTRL_ENTRY_LIST_START
     {
         .function = function::UARTE0_RXD,
         .pin = 8,
@@ -45,13 +45,8 @@ struct entry pinconfig_entries[] = {
         .function = function::SAADC_CHAN1_POS,
         .pin = saadc::AIN2,
     },
-};
+PINCTRL_ENTRY_LIST_END;
 
-struct config board_config = {
-    .n_entries = sizeof(pinconfig_entries) / sizeof(pinconfig_entries[0]),
-    .entries = pinconfig_entries,
-};
-
-struct config* board_pin_config = &board_config;
+PINCTRL_DEFINE_BOARD_CONFIG;
 
 };

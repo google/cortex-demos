@@ -18,6 +18,15 @@
 
 #include <stdint.h>
 
+#define PINCTRL_ENTRY_LIST_START static const struct entry pinconfig_entries[] = {
+#define PINCTRL_ENTRY_LIST_END };
+
+#define PINCTRL_DEFINE_BOARD_CONFIG static const struct config board_config = { \
+    .n_entries = sizeof(pinconfig_entries) / sizeof(pinconfig_entries[0]), \
+    .entries = pinconfig_entries, \
+}; \
+	const struct config* const board_pin_config = &board_config;
+
 namespace pinctrl {
 
 struct entry {
@@ -27,10 +36,10 @@ struct entry {
 
 struct config {
     unsigned int n_entries;
-    struct entry* entries;
+    const struct entry* entries;
 };
 
-extern struct config* board_pin_config;
+extern const struct config* const board_pin_config;
 
 // Note, that -1 should not be used as a pin number,
 // as this is a way to indicate errors.
