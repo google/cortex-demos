@@ -1,0 +1,9 @@
+language: cpp
+compiler: gcc
+stages:
+  - compile
+  - test
+
+compile: scons --no-build-apps --no-build-firmware
+
+test: ./run_all_tests.sh
