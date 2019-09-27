@@ -48,10 +48,10 @@ sources = Split(
         'core/thread.cpp '
         ) + chip_sources + driver_sources
 
-objects = [demos_obj(hwenv, s) for s in sources]
-demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
-
 native_objects = [demos_obj(native_env, s, lib_suffix='native') for s in sources]
 native_env.StaticLibrary(target='demos_%s_native' % hwenv['CHIP'], source=native_objects)
 
-Return('demos_lib')
+if GetOption('build_firmware'):
+  objects = [demos_obj(hwenv, s) for s in sources]
+  demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
+  Return('demos_lib')

@@ -1,5 +1,5 @@
 """
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,6 +16,18 @@
 
 import os
 import chipconf
+
+AddOption('--no-build-apps',
+          dest='build_apps',
+          action='store_false',
+          default=True,
+          help='Do not build default appliations')
+
+AddOption('--no-build-firmware',
+          dest='build_firmware',
+          action='store_false',
+          default=True,
+          help='Do not build firmware libraries (i.e. only build native tests/libraries)')
 
 def make_chip_hwenv(tmpl_env, chip):
     hwenv = tmpl_env.Clone()
@@ -86,23 +98,24 @@ for chip in supported_chips:
             exports=dict(env=test_env, chip=chip))
 
 # Applications
-app_test_env = test_env.Clone()
-app_test_env.AppendUnique(LIBS=test_lib)
+if GetOption('build_apps'):
+  app_test_env = test_env.Clone()
+  app_test_env.AppendUnique(LIBS=test_lib)
 
-app_env = hwenv.Clone()
-app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include')])
+  app_env = hwenv.Clone()
+  app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include')])
 
-for chip in supported_chips:
-    chip_hwenv = make_chip_hwenv(app_env, chip)
-    chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
-    for app in get_chip_apps(chip):
-        freertos_port_name = chipconf.get_freertos_port(chip)
-        app_hwenv = chip_hwenv.Clone()
-        app_hwenv.AppendUnique(CPPPATH=[
-            os.path.join('#', 'apps', app),
-            os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'portable', 'GCC', freertos_port_name),
-            ])
-        SConscript(os.path.join('apps', app, 'SConscript'),
-                variant_dir=os.path.join('build', 'apps', chip, app),
-                exports=dict(env=app_hwenv, freertos_path='#/third_party/FreeRTOS',
-                    freertos_port=freertos_port_name, test_env=app_test_env))
+  for chip in supported_chips:
+      chip_hwenv = make_chip_hwenv(app_env, chip)
+      chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
+      for app in get_chip_apps(chip):
+          freertos_port_name = chipconf.get_freertos_port(chip)
+          app_hwenv = chip_hwenv.Clone()
+          app_hwenv.AppendUnique(CPPPATH=[
+              os.path.join('#', 'apps', app),
+              os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'portable', 'GCC', freertos_port_name),
+              ])
+          SConscript(os.path.join('apps', app, 'SConscript'),
+                  variant_dir=os.path.join('build', 'apps', chip, app),
+                  exports=dict(env=app_hwenv, freertos_path='#/third_party/FreeRTOS',
+                      freertos_port=freertos_port_name, test_env=app_test_env))
