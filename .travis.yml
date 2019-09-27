@@ -1,4 +1,5 @@
 language: cpp
 compiler: gcc
-install: apt-get -y install scons
+before_install:
+  - sudo apt-get -y install scons
 script: scons --no-build-apps --no-build-firmware && ./run_all_tests.sh
