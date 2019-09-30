@@ -8,3 +8,4 @@ run_*_tests
 *.bin
 build/*
 ctags
+docs/*
