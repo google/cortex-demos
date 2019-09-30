@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #pragma once
 
 #include <iostream>
-
 #include <cstdint>
 #include <list>
 #include <map>
@@ -145,6 +144,25 @@ class WriteSink : public IOHandlerStub {
         std::vector<T> sink_;
 };
 
+
+/**
+ * @brief Virtual Memory IO handler for tests.
+ *
+ * The tests should treat this class as a singleton and use mock::get_global_memory() function
+ * to get an instance. Memory class' tests do not treat it as a singleton though, so
+ * the rule is not strictly enforced.
+ *
+ * The methods of this class can be split into two groups: simulation and examination.
+ * Simulations methods are the ones that simulate memory IO operations for the firmware.
+ * These are readptr(), writeptr(), read32(), write32(), read16(), write16(), read8(), write8().
+ *
+ * The rest of the methods are used in tests to examine or to configure the state of the virtual
+ * memory for testing purposes.
+ *
+ * The class allows further customization of address' handling. One can specify a handler
+ * for a specific address or an address range and all IO operations will be forwarded to that
+ * handler. This is the main simulation mechanizm.
+ */
 class Memory {
     public:
         Memory() = default;
@@ -160,36 +178,197 @@ class Memory {
             WRITEPTR,
         };
 
+        /**
+         * @brief MemoryIO operations journal entry.
+         *
+         * This is a tuple of Op, memory address and value. For read operations
+         * the value is what the operation has returned. For write operations
+         * it is a new value.
+         */
         using JournalEntry = std::tuple<Op, uint32_t, uint32_t>;
+
+        /**
+         * @brief List of memio operations.
+         */
         using JournalT = std::vector<JournalEntry>;
 
+        /**
+         * @brief Get the journal for examination.
+         *
+         * There should not be any reason to modify the journal,
+         * so this return a constant reference.
+         */
         const JournalT& get_journal() const;
 
+        /**
+         * @brief Reset the Memory object.
+         *
+         * This clears the journal, all IO handlers and all of the virtual
+         * memory contents. The test suite should call this before
+         * performing any of the IO operations.
+         */
         void reset();
 
+        /**
+         * @brief Read pointer from virtual memory address.
+         *
+         * Called by the simulation.
+         *
+         * This needs to be previously set by set_ptr_at() or writeptr(), otherwise
+         * it would return nullptr.
+         */
         void* readptr(uint32_t addr) const;
+
+        /**
+         * @brief Read 32 bit value from 32 bit aligned address.
+         *
+         * Called by the simulation.
+         */
         uint32_t read32(uint32_t addr) const;
+
+        /**
+         * @brief Read 16 bit value from 16 bit aligned address.
+         *
+         * Called by the simulation.
+         */
         uint16_t read16(uint32_t addr) const;
+
+        /**
+         * @brief Read 8 bit value from the address.
+         *
+         * Called by the simulation.
+         */
         uint8_t read8(uint32_t addr) const;
 
+        /**
+         * @brief Store the pointer (the address it points to) at virtual memory address.
+         *
+         * Called by the simulation.
+         *
+         * Since simulated ARM MCU's are 32bit and most desktop OS (where the tests are run)
+         * are 64 bit, storing and reading pointers needs special handling.
+         */
         void writeptr(uint32_t addr, void* ptr);
+
+        /**
+         * @brief Store 32 bit value at 32 bit aligned virtual memory address.
+         *
+         * Called by the simulation.
+         */
         void write32(uint32_t addr, uint32_t value);
+
+        /**
+         * @brief Store 16 bit value at 16 bit aligned virtual memory address.
+         *
+         * Called by the simulation.
+         */
         void write16(uint32_t addr, uint16_t value);
+
+        /**
+         * @brief Store 8 bit value in virtual memory address.
+         *
+         * Called by the simulation.
+         */
         void write8(uint32_t addr, uint8_t value);
 
+        /**
+         * @brief Store value at virtual memory address.
+         *
+         * The difference from write32() is that this method bypasses the journal
+         * and if there are any IOHandlerStub objects registered for that address,
+         * this also bypasses them.
+         *
+         * This meant to be used by tests.
+         */
         void set_value_at(uint32_t addr, uint32_t value);
+
+        /**
+         * @brief Get value at virtual memory address.
+         *
+         * The difference from read32() is that this method bypasses the journal
+         * and if there are any IOHandlerStub objects registered for that address,
+         * this also bypasses them.
+         *
+         * This meant to be used by tests.
+         */
         uint32_t get_value_at(uint32_t addr) const;
+
+        /**
+         * @brief Get value at virtual memory address.
+         *
+         * The difference from read32() is that this method bypasses the journal
+         * and if there are any IOHandlerStub objects registered for that address,
+         * this also bypasses them. If the value at the address was not previously set,
+         * returns default value.
+         *
+         * The difference from get_value_at(uint32_t) is that this method does
+         * not throw an exception when the value wasn't initialized.
+         *
+         * This meant to be used by tests.
+         */
         uint32_t get_value_at(uint32_t addr, uint32_t default_value) const;
 
+        /**
+         * @brief Get pointer stored at address.
+         *
+         * The method will return nullptr, if the address wasn't initialized.
+         */
         void* get_ptr_at(uint32_t addr) const;
+
+        /**
+         * @brief Store pointer at virtual memory address.
+         */
         void set_ptr_at(uint32_t addr, void* ptr);
 
+        /**
+         * @brief Set IOHandlerStub for a single 32bit aligned address.
+         *
+         * @param[in] addr Virtual memory address. Must be 32 bit aligned.
+         * @param[in] io_handler All memory IO operations on the address will
+         *  be forwarded to this object. Note, that Memory object does not own the pointer,
+         *  which is a primary reason why calling reset() at the beginning of a test is required.
+         */
         void set_addr_io_handler(uint32_t addr, IOHandlerStub* io_handler);
+
+        /**
+         * @brief Set IOHandlerStub for a range of virtual memory addresses.
+         *
+         * The range is [range_start; range_end).
+         *
+         * @param[in] range_start Virtual memory address. Must be 32 bit aligned.
+         * @param[in] range_end Virtual memory address. Must be 32 bit aligned.
+         * @param[in] io_handler All memory IO operations on the address will
+         *  be forwarded to this object. Note, that Memory object does not own the pointer,
+         *  which is a primary reason why calling reset() at the beginning of a test is required.
+         */
         void set_addr_io_handler(uint32_t range_start, uint32_t range_end, IOHandlerStub* io_handler);
 
+        /**
+         * @brief Count the number of operations performed.
+         *
+         * This basically looks at the journal and counts how many operations
+         * are of this type.
+         *
+         * @param[in] op The operation the caller is interested in.
+         */
         unsigned int get_op_count(Op op) const;
+
+        /**
+         * @brief Count the number of operations performed.
+         *
+         * This basically looks at the journal and counts how many operations
+         * are of this type and at a given address.
+         *
+         * @param[in] op The operation the caller is interested in.
+         * @param[in] addr The address the caller is interested in.
+         */
         unsigned int get_op_count(Op op, uint32_t addr) const;
 
+        /**
+         * @brief Print the journal to stdout.
+         *
+         * This is kind of a last resort for debugging.
+         */
         void print_journal() const;
 
     private:
@@ -206,6 +385,12 @@ class Memory {
         mutable JournalT journal_;
 };
 
+/**
+ * @brief Return global Memory object.
+ *
+ * The tests that user memio mocking should use this function
+ * to get the Singleton Memory object.
+ */
 Memory& get_global_memory();
 
 }  // namespace mock
