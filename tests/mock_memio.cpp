@@ -212,6 +212,12 @@ void Memory::print_journal() const {
     }
 }
 
+void Memory::print_map() const {
+    for (const auto& item : mem_map_) {
+        std::cout << std::hex << item.first << " => " << item.second << std::endl;
+    }
+}
+
 Memory& get_global_memory() {
     return g_memory;
 }

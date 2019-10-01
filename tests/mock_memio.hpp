@@ -483,6 +483,15 @@ class Memory {
          */
         void print_journal() const;
 
+        /**
+         * @brief Print virtual memory map to stdout.
+         *
+         * Only prints cells that were set by the user or simulation, i.e.
+         * using set_value_at() or writeXXX() methods.
+         * Does not (yet) print stored pointers.
+         */
+        void print_map() const;
+
     private:
         void priv_write32(uint32_t addr, uint32_t value);
         uint32_t priv_read32(uint32_t addr) const;
