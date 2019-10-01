@@ -14,6 +14,13 @@
     limitations under the License.
 *******************************************************************************/
 
+/**
+ * @file
+ *
+ * Utilities for mocking memory IO access. These are main tools for simulating
+ * hardware in tests.
+ */
+
 #pragma once
 
 #include <iostream>
@@ -27,33 +34,102 @@ namespace mock {
 
 class Memory;
 
+/**
+ * @brief Base class for more complex IO handlers.
+ *
+ * The default behavior is the same as not having the custom handler at all,
+ * which makes this class by itself not very useful. The derived classes should
+ * override at least one of read32(), write32() methods.
+ *
+ * The objects typically don't need their own value storage, because the values
+ * written are still stored in Virtual Memory.
+ *
+ * FIXME: The API for accessing the global virtual memory is a little awkward at
+ * the moment. If the implementation uses global virtual memory object, the user
+ * needs to know that and they need to initialize mem_ value. This is not ideal.
+ */
 class IOHandlerStub {
     public:
+        /**
+         * @brief Handle write at 32 bit aligned virtual memory address.
+         *
+         * @param[in] addr Virtual memory address. 32 bit aligned.
+         * @param[in] old_value Value currently stored at that address.
+         * @param[in] new_value Value that is being written
+         *
+         * @return The new value that should be stored in the virtual memory at addr.
+         */
         virtual uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) {
             (void)addr;
             (void)old_value;
             return new_value;
         }
 
+        /**
+         * @brief Handle read from 32 bit aligned virtual memory address.
+         *
+         * @param[in]
+         * @param[in] addr Virtual memory address. 32 bit aligned.
+         *
+         * @return The value that should be returned to the reader.
+         */
         virtual uint32_t read32(uint32_t addr, uint32_t value) {
             (void)addr;
             return value;
         }
 
+        /**
+         * @brief Setter for the mem_ field.
+         */
         void set_memory(Memory* mem) {
             mem_ = mem;
         }
 
     protected:
+        /**
+         * @brief Same as mem_->set_value_at(uint32_t, uint32_t)
+         */
         void set_mem_value(uint32_t addr, uint32_t value);
+
+        /**
+         * @brief Same as mem_->get_value_at(uint32_t)
+         */
         uint32_t get_mem_value(uint32_t addr) const;
 
     private:
+        /**
+         * @brief Pointer to global virtual memory object
+         *
+         * If the implementation wants to use set_mem_value() or get_mem_value()
+         * methods, this should be initialized to point to global virtual memory
+         * object.
+         */
         Memory* mem_;
 };
 
+/**
+ * @brief IO Handler for the register with separate "set" and "clear" registers.
+ *
+ * Implements set/clear/rw addresses for the same register.
+ *
+ * Writing to "set" address sets the bits in the register that are set in the
+ * written value. All other bits are preserved.
+ *
+ * Writing to "clear" address clears the bits in the register that are *set* in
+ * the written value. All other bits are preserved.
+ *
+ * The main address has usual Read/Write access. All addresses read as a current
+ * value for the register.
+ */
 class RegSetClearStub : public IOHandlerStub {
     public:
+     /**
+      * @brief Constructor for the handler.
+      *
+      * @param addr Normal Read/Write access address.
+      * @param set_addr Address for "set" access.
+      * @param clr_addr Address for "clear" access.
+      */
         RegSetClearStub(uint32_t addr, uint32_t set_addr, uint32_t clr_addr) :
             rw_addr_{addr}, set_addr_{set_addr}, clr_addr_{clr_addr} {}
 
@@ -87,6 +163,12 @@ class RegSetClearStub : public IOHandlerStub {
         const uint32_t clr_addr_;
 };
 
+/**
+ * @brief Ignore writes to the handled virtual memory address.
+ *
+ * If this handler is assigned to a particular address, all writes
+ * to that address will be ignored.
+ */
 class IgnoreWrites : public IOHandlerStub {
     public:
         uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
@@ -96,6 +178,15 @@ class IgnoreWrites : public IOHandlerStub {
         }
 };
 
+/**
+ * @brief Source reads from a list.
+ *
+ * Each subsequent read from the handled address will return a value
+ * from the top of the list and pop that value.
+ *
+ * Useful for simulating incoming transmission of some sort for UART,
+ * I2C etc. peripherals.
+ */
 class SourceIOHandler : public IOHandlerStub {
     public:
         uint32_t read32(uint32_t addr, uint32_t value) override {
@@ -109,10 +200,16 @@ class SourceIOHandler : public IOHandlerStub {
             return ret;
         }
 
+        /**
+         * @brief Add value to the back of the read list
+         */
         void add_value(uint32_t value) {
             read_seq_.push_back(value);
         }
 
+        /**
+         * @brief Get number of values in read sequence.
+         */
         size_t get_seq_len() const {
             return read_seq_.size();
         }
@@ -121,6 +218,15 @@ class SourceIOHandler : public IOHandlerStub {
         std::list<uint32_t> read_seq_;
 };
 
+/**
+ * @brief Write values into a sink.
+ *
+ * Each subsequent write to the handled address will be stored in a vector,
+ * after being cast to type T.
+ *
+ * This is useful for simulating outgoing transmission of some sort for UART,
+ * I2C etc. peripherals.
+ */
 template <typename T>
 class WriteSink : public IOHandlerStub {
     public:
@@ -132,10 +238,16 @@ class WriteSink : public IOHandlerStub {
             return new_value;
         }
 
+        /**
+         * @brief Clear the sink. Removes all data from it.
+         */
         void clear() {
             sink_.clear();
         }
 
+        /**
+         * @brief Get reference to the data in the sink.
+         */
         const std::vector<T>& get_data() const {
             return sink_;
         }
