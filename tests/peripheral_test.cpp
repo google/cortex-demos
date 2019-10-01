@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class TestPeriph : public driver::Peripheral {
         bool is_clear = false;
 
     private:
-        bool is_event_active(int evt) override {
+        bool is_event_active(int evt) const override {
             if (evt == 1) {
                 return true;
             }

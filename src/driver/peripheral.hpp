@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -50,12 +50,13 @@ class Peripheral {
         virtual void disable_interrupts(uint32_t) {};
 
     protected:
+        virtual bool is_event_active(int evt) const;
+        virtual void clear_event(int evt);
+
         const uint32_t base_;
         const unsigned int irq_n_;
 
     private:
-        virtual bool is_event_active(int evt);
-        virtual void clear_event(int evt);
         evt_handler_func_t* evt_handlers_ = nullptr;
         const size_t num_event_handlers_ = 0;
 };

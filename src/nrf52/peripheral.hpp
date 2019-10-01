@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,15 +33,16 @@ class Peripheral : virtual public driver::Peripheral {
             clear_event(evt);
         }
 
-    private:
+    protected:
         void clear_event(int evt) override {
             raw_write32(base_ + kEventsOffset + evt * 4, 0);
         }
 
-        bool is_event_active(int evt) override {
+        bool is_event_active(int evt) const override {
             return raw_read32(base_ + kEventsOffset + evt * 4);
         }
 
+    private:
         static constexpr auto kEventsOffset = 0x100;
 };
 

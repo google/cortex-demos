@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ void Peripheral::disable_irq() const {
     nvic_disable_irq(irq_n_);
 }
 
-bool Peripheral::is_event_active(int) {
+bool Peripheral::is_event_active(int) const {
     return false;
 }
 
