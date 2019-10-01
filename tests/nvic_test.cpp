@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -48,6 +48,10 @@ TEST_CASE("Test NVIC Init") {
 }
 
 TEST_CASE("Test Interrupt Dispatch") {
+    // Check that dispatch of uninitialized interrupt handler
+    // does the right thing and does not explode.
+    CHECK(nvic_dispatch(0) < 0);
+
     nvic_set_handler(IRQ_NMI, intr_handler);
 
     nvic_dispatch(IRQ_NMI);

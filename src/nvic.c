@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include "nvic.h"
 
 #include <stdint.h>
+#include <string.h>
 
 #include "chip.h"
 #include "cutils.h"
@@ -46,6 +47,7 @@
 static irq_handler_func_t __attribute__((aligned(CHIP_IRQ_TABLE_ALIGN))) vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
 
 void nvic_init(void) {
+    memset(vector_table, 0, sizeof(vector_table));
     /* Only relocate top of the stack and reset handler */
     syscontrol_relocate_vt((ubase_t)vector_table, 1);
 }
@@ -64,6 +66,10 @@ int nvic_dispatch(int irqn) {
     const size_t offset = irqn - IRQ_OFFSET;
     if (offset > ARRAY_SIZE(vector_table)) {
         return -1;
+    }
+
+    if (!vector_table[offset]) {
+        return -2;
     }
 
     vector_table[offset]();
