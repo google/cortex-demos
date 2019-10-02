@@ -39,7 +39,7 @@ class Peripheral {
             return irq_n_;
         }
 
-        void set_irq_handler(void (*handler)(void)) const;
+        int set_irq_handler(void (*handler)(void)) const;
         void enable_irq() const;
         void disable_irq() const;
 

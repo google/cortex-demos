@@ -20,8 +20,8 @@
 
 namespace driver {
 
-void Peripheral::set_irq_handler(void (*handler)(void)) const {
-    nvic_set_handler(irq_n_, handler);
+int Peripheral::set_irq_handler(void (*handler)(void)) const {
+    return nvic_set_handler(irq_n_, handler);
 }
 
 void Peripheral::enable_irq() const {
