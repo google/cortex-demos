@@ -53,11 +53,14 @@ TEST_CASE("Test Interrupt Dispatch") {
     CHECK(nvic_dispatch(0) < 0);
 
     nvic_set_handler(IRQ_NMI, intr_handler);
+    nvic_set_handler(0, intr_handler);
 
-    nvic_dispatch(IRQ_NMI);
+    CHECK(nvic_dispatch(IRQ_NMI) >= 0);
     CHECK(counter == 1);
-    nvic_dispatch(IRQ_NMI);
+    CHECK(nvic_dispatch(IRQ_NMI) >= 0);
     CHECK(counter == 2);
+    CHECK(nvic_dispatch(0) >=0);
+    CHECK(counter == 3);
 }
 
 TEST_CASE("Test Setting Off Interrupts") {

@@ -42,7 +42,9 @@ void nvic_init(void);
 int nvic_set_handler(int irqn, irq_handler_func_t handler_func);
 int nvic_dispatch(int irqn);
 
-/** Set Off given interrupt
+/**
+ *
+ * @brief Set Off given interrupt
  *
  * @param[irqn] Interrupt number
  *
@@ -55,6 +57,15 @@ void nvic_disable_irqs(void);
 
 void nvic_enable_irq(int irqn);
 void nvic_disable_irq(int irqn);
+
+
+/**
+ * @brief Get interrupt vector table
+ *
+ * This should only be used for debugging in tests.
+ */
+irq_handler_func_t* nvic_get_table(void);
+
 
 #ifdef __cplusplus
 }  /* extern "C" */

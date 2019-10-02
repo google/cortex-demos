@@ -122,3 +122,7 @@ void nvic_enable_irq(int irqn) {
 void nvic_disable_irq(int irqn) {
     raw_write32(NVIC_ICER(NVIC_IRQ_REGN(irqn)), NVIC_IRQ_MASK(irqn));
 }
+
+irq_handler_func_t* nvic_get_table(void) {
+    return vector_table;
+}
