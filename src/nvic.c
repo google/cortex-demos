@@ -111,13 +111,13 @@ int nvic_irqset(int irqn) {
 }
 
 void nvic_enable_irqs() {
-#ifndef CHIP_NATIVETEST
+#if defined(__arm__) && defined(__thumb__)
     __asm__ ("cpsie i");
 #endif
 }
 
 void nvic_disable_irqs() {
-#ifndef CHIP_NATIVETEST
+#if defined(__arm__) && defined(__thumb__)
     __asm__ ("cpsid i");
 #endif
 }
