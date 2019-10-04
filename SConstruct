@@ -29,6 +29,12 @@ AddOption('--no-build-firmware',
           default=True,
           help='Do not build firmware libraries (i.e. only build native tests/libraries)')
 
+AddOption('--no-debug',
+          dest='with_debug',
+          action='store_false',
+          default=True,
+          help='Disable debug symbols and optimize the code.')
+
 def make_chip_hwenv(tmpl_env, chip):
     hwenv = tmpl_env.Clone()
     hwenv['CHIP'] = chip
@@ -60,6 +66,11 @@ env = Environment(
         CPPPATH = ['.', '#/src'],
         ENV = {'PATH': os.environ['PATH']},
         )
+
+if GetOption('with_debug'):
+  env.AppendUnique(CCFLAGS=['-g'])
+else:
+  env.AppendUnique(CCFLAGS=['-O2'])
 
 supported_chips = 'nrf52 sam4s same5'.split()
 
