@@ -1,4 +1,4 @@
-# demOS (demo-OS)
+# demOS (demo-OS) {#mainpage}
 
 This project is a microcontroller operating system that focuses heavily on testability.
 
