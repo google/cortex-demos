@@ -18,6 +18,7 @@
 
 #include "mock_memio.hpp"
 
+#include "nvic.h"
 #include "nrf52/power.hpp"
 
 constexpr uint32_t power_base = 0x40000000;
@@ -27,12 +28,34 @@ constexpr uint32_t evt_usbpwrrdy = power_base + 0x124;
 
 constexpr uint32_t usb_regstatus = power_base + 0x438;
 
-TEST_CASE("Test Power USB Features", "[power,usb]") {
-    auto* power = nrf52::Power::request();
-    REQUIRE(power);
+namespace {
 
+bool nvic_initialized = false;
+
+void nvic_init_once() {
+    if (!nvic_initialized) {
+        nvic_init();
+        nvic_initialized = true;
+    }
+}
+
+int evt_counter = 0;
+
+void dummy_event_handler(int evt) {
+    (void)evt;
+    ++evt_counter;
+}
+
+}
+
+TEST_CASE("Test Power USB Features", "[power,usb]") {
     auto& mem = mock::get_global_memory();
     mem.reset();
+
+    nvic_init_once();
+
+    auto* power = nrf52::Power::request();
+    REQUIRE(power);
 
     REQUIRE(!power->is_usb_detected());
     REQUIRE(!power->is_usb_power_ready());
@@ -50,4 +73,31 @@ TEST_CASE("Test Power USB Features", "[power,usb]") {
     mem.set_value_at(evt_usbpwrrdy, 0);
     mem.set_value_at(usb_regstatus, 2);
     CHECK(power->is_usb_power_ready());
+}
+
+TEST_CASE("Test Power IRQ/Event Handling", "[power,irq]") {
+    using nrf52::Power;
+
+    auto& mem = mock::get_global_memory();
+    mem.reset();
+
+    nvic_init_once();
+
+    auto* power = Power::request();
+    REQUIRE(power);
+
+    constexpr auto power_irqnum = 0;
+    CHECK(nvic_dispatch(power_irqnum) >= 0);
+
+    CHECK(power->add_event_handler(Power::Event::USBDETECTED, dummy_event_handler) >= 0);
+    evt_counter = 0;
+
+    mem.set_value_at(evt_usbdetected, 0);
+    mem.set_value_at(evt_usbpwrrdy, 1);
+    CHECK(nvic_dispatch(power_irqnum) >= 0);
+    CHECK(evt_counter == 0);
+
+    mem.set_value_at(evt_usbdetected, 1);
+    CHECK(nvic_dispatch(power_irqnum) >= 0);
+    CHECK(evt_counter == 1);
 }

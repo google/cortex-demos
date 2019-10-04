@@ -25,14 +25,13 @@ namespace nrf52 {
 
 class Power : public nrf52::Peripheral {
     public:
-        Power() : driver::Peripheral(periph::id_to_base(0), 0) {}
+        Power();
 
         bool is_usb_detected() const;
         bool is_usb_power_ready() const;
 
         static Power* request();
 
-    private:
         enum Event {
             POFWARN = 2,
             SLEEPENTER = 5,
@@ -40,7 +39,16 @@ class Power : public nrf52::Peripheral {
             USBDETECTED,
             USBREMOVED,
             USBPWRRDY,
+
+            NUM_EVENTS,
         };
+
+    private:
+        static void handle_irq();
+
+        bool is_initialized = false;
+
+        evt_handler_func_t event_handlers_[Event::NUM_EVENTS];
 
         static constexpr uint32_t kUSBRegStatusOffset = 0x438;
         static constexpr uint32_t kUSBRegStatusVbusDetect = 1;

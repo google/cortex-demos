@@ -24,7 +24,21 @@ Power power;
 
 }  // namespace
 
+Power::Power() : driver::Peripheral(periph::id_to_base(0), 0, event_handlers_, Power::Event::NUM_EVENTS) {
+}
+
+void Power::handle_irq() {
+    power.handle_events();
+}
+
 Power* Power::request() {
+    if (!power.is_initialized) {
+        int ret = power.set_irq_handler(Power::handle_irq);
+        if (ret < 0) {
+            return nullptr;
+        }
+        power.is_initialized = true;
+    }
     return &power;
 }
 
