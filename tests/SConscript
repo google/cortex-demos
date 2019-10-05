@@ -26,9 +26,14 @@ common_tests = Split(
         'peripheral_test.cpp syscontrol_test.cpp nvic_test.cpp ')
 
 common_tests_objs = [test_env.Object(t) for t in common_tests]
-chip_test_extras = test_env.Object(Glob('%s_*_fake.cpp' % chip.lower()))
 
-chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
+chip_test_extras = []
+chip_test_objs = []
+
+if env['BUILD_CHIP_TESTS']:
+    chip_test_extras = test_env.Object(Glob('%s_*_fake.cpp' % chip.lower()))
+    chip_test_objs = test_env.Object(Glob('%s_*_test.cpp' % chip.lower()))
+
 run_chip_tests = test_env.Program(
         LIBS='demos_%s_native' % chip,
         target='run_all_tests',

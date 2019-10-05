@@ -35,6 +35,12 @@ AddOption('--no-debug',
           default=True,
           help='Disable debug symbols and optimize the code.')
 
+AddOption('--no-chip-tests',
+          dest='build_chip_tests',
+          action='store_false',
+          default=True,
+          help='Do not build chip specific tests')
+
 def make_chip_hwenv(tmpl_env, chip):
     hwenv = tmpl_env.Clone()
     hwenv['CHIP'] = chip
@@ -71,6 +77,8 @@ if GetOption('with_debug'):
   env.AppendUnique(CCFLAGS=['-g'])
 else:
   env.AppendUnique(CCFLAGS=['-O2'])
+
+env['BUILD_CHIP_TESTS'] = GetOption('build_chip_tests')
 
 supported_chips = 'nrf52 sam4s same5'.split()
 
