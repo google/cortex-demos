@@ -25,13 +25,15 @@ namespace {
 
 constexpr auto clock_base = 0x40000000;
 
-int counter;
+class DummyEventHandler : public driver::EventHandler {
+    public:
+        void handle_event(driver::EventInfo* e_info) override {
+            (void)e_info;
+            ++evt_counter;
+        }
 
-void dummy_evt_handler(int evt) {
-    if (evt == 0) {
-        ++counter;
-    }
-}
+        int evt_counter = 0;
+};
 
 }  // namespace
 
@@ -64,16 +66,16 @@ TEST_CASE("RTC API") {
     };
 
     const auto& test_enable_interrupt = [&mem](driver::Timer* timer, uint32_t base) {
-        timer->add_event_handler(0, dummy_evt_handler);
+        DummyEventHandler dummy_evt_handler;
+        timer->add_event_handler(0, &dummy_evt_handler);
         mem.set_value_at(base + 0x100, 1);
         timer->enable_tick_interrupt();
 
         CHECK((mem.get_value_at(base + 0x304, 0) & 1) == 1);
         nvic_dispatch(timer->get_irq_num());
-        CHECK(counter == 1);
+        CHECK(dummy_evt_handler.evt_counter == 1);
     };
 
-    counter = 0;
     mem.set_value_at(clock_base + 0x418, (1 << 16) | 1);
 
     SECTION("RTC0") {

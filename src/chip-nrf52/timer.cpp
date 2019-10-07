@@ -37,7 +37,7 @@ void rtc2_irq_handler();
 
 class RTC : public Timer, public nrf52::Peripheral {
     public:
-        RTC(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
+        RTC(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, &evt_handler_storage_) {}
 
         void start() override {
             if (!lfclk_started) {
@@ -114,7 +114,7 @@ class RTC : public Timer, public nrf52::Peripheral {
         // TODO: make this configurable
         static constexpr auto kLfclkSrc = NRF52_LFCLK_XTAL;
 
-        evt_handler_func_t evt_handler_storage_[kNumRTCEvents];
+        HandlerContainerT evt_handler_storage_{kNumRTCEvents, nullptr};
 
         bool irq_handler_configured_ = false;
 };
@@ -149,7 +149,7 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
             SHUTDOWN,
         };
 
-        TimerCounter(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, evt_handler_storage_, kNumRTCEvents) {}
+        TimerCounter(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, &evt_handler_storage_) {}
 
         void start() override {
             trigger_task(Task::START);
@@ -179,7 +179,7 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
 
         static constexpr uint32_t kPrescalerOffset = 0x510;
 
-        evt_handler_func_t evt_handler_storage_[kNumTimerEvents];
+        HandlerContainerT evt_handler_storage_{kNumTimerEvents, nullptr};
 
 };
 

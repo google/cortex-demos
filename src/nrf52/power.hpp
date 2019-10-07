@@ -48,7 +48,7 @@ class Power : public nrf52::Peripheral {
 
         bool is_initialized = false;
 
-        evt_handler_func_t event_handlers_[Event::NUM_EVENTS];
+        HandlerContainerT event_handlers_{Event::NUM_EVENTS, nullptr};
 
         static constexpr uint32_t kUSBRegStatusOffset = 0x438;
         static constexpr uint32_t kUSBRegStatusVbusDetect = 1;

@@ -36,11 +36,8 @@ bool Peripheral::is_event_active(int) const {
     return false;
 }
 
-Peripheral::Peripheral(uint32_t base, unsigned int irq_n, evt_handler_func_t* evt_handlers, size_t num_handlers) :
-        base_{base}, irq_n_{irq_n}, evt_handlers_{evt_handlers}, num_event_handlers_{num_handlers} {
-    for (size_t i = 0; i < num_event_handlers_; ++i) {
-        evt_handlers_[i] = nullptr;
-    }
+Peripheral::Peripheral(uint32_t base, unsigned int irq_n, HandlerContainerT* evt_handlers) :
+        base_{base}, irq_n_{irq_n}, evt_handlers_{evt_handlers} {
 }
 
 void Peripheral::handle_events() {
@@ -48,20 +45,23 @@ void Peripheral::handle_events() {
         return;
     }
 
-    for (size_t i = 0; i < num_event_handlers_; ++i) {
-        if (evt_handlers_[i] && is_event_active(i)) {
-            evt_handlers_[i](i);
+    struct EventInfo e_info;
+    for (size_t i = 0; i < evt_handlers_->size(); ++i) {
+        if ((*evt_handlers_)[i] && is_event_active(i)) {
+            e_info.irq_n = irq_n_;
+            e_info.evt_id = i;
+            (*evt_handlers_)[i]->handle_event(&e_info);
             clear_event(i);
         }
     }
 }
 
-int Peripheral::add_event_handler(unsigned int evt, evt_handler_func_t handler) {
-    if (evt >= num_event_handlers_) {
+int Peripheral::add_event_handler(unsigned int evt, EventHandler* handler) {
+    if (evt >= evt_handlers_->size()) {
         return -1;
     }
 
-    evt_handlers_[evt] = handler;
+    (*evt_handlers_)[evt] = handler;
     return 0;
 }
 

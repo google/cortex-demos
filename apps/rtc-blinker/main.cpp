@@ -22,12 +22,17 @@
 
 namespace {
 
-int counter = 0;
+class ToggleLEDsHandlers : public driver::EventHandler {
+    public:
+        void handle_event(driver::EventInfo* e_info) override {
+            (void)e_info;
+            auto gpio_n = 17 + (counter++ & 3);
+            gpio_toggle(0, (1 << gpio_n));
+        }
 
-void toggle_leds(int) {
-    auto gpio_n = 17 + (counter++ & 3);
-    gpio_toggle(0, (1 << gpio_n));
-}
+    private:
+        unsigned counter = 0;
+} toggle_leds_handler;
 
 }
 
@@ -40,7 +45,7 @@ int main(void) {
 
     rtc->stop();
     rtc->set_prescaler(0xffd);
-    rtc->add_event_handler(0, toggle_leds);
+    rtc->add_event_handler(0, &toggle_leds_handler);
     rtc->enable_tick_interrupt();
     rtc->start();
 

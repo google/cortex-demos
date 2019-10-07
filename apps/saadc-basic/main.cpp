@@ -38,9 +38,13 @@ extern "C" void* _sbrk(int incr) {
 
 extern "C" void xPortSysTickHandler(void);
 
-void handle_rtc_tick_event(int) {
-    xPortSysTickHandler();
-}
+class RTCTickHandler : public driver::EventHandler {
+    public:
+        void handle_event(driver::EventInfo* e_info) override {
+            (void)e_info;
+            xPortSysTickHandler();
+        }
+} rtc_tick_handler;
 
 extern "C" {
 
@@ -53,7 +57,7 @@ void vPortSetupTimerInterrupt(void) {
     auto* rtc = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
     auto rate = rtc->get_rate();
     rtc->set_prescaler(rate / configTICK_RATE_HZ);
-    rtc->add_event_handler(0, handle_rtc_tick_event);
+    rtc->add_event_handler(0, &rtc_tick_handler);
     rtc->enable_tick_interrupt();
     rtc->start();
 }

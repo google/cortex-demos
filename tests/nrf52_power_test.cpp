@@ -39,12 +39,15 @@ void nvic_init_once() {
     }
 }
 
-int evt_counter = 0;
+class DummyEventHandler : public driver::EventHandler {
+    public:
+        void handle_event(driver::EventInfo* e_info) override {
+            (void)e_info;
+            ++evt_counter;
+        }
 
-void dummy_event_handler(int evt) {
-    (void)evt;
-    ++evt_counter;
-}
+        int evt_counter = 0;
+};
 
 }
 
@@ -89,15 +92,15 @@ TEST_CASE("Test Power IRQ/Event Handling", "[power,irq]") {
     constexpr auto power_irqnum = 0;
     CHECK(nvic_dispatch(power_irqnum) >= 0);
 
-    CHECK(power->add_event_handler(Power::Event::USBDETECTED, dummy_event_handler) >= 0);
-    evt_counter = 0;
+    DummyEventHandler dummy_event_handler;
+    CHECK(power->add_event_handler(Power::Event::USBDETECTED, &dummy_event_handler) >= 0);
 
     mem.set_value_at(evt_usbdetected, 0);
     mem.set_value_at(evt_usbpwrrdy, 1);
     CHECK(nvic_dispatch(power_irqnum) >= 0);
-    CHECK(evt_counter == 0);
+    CHECK(dummy_event_handler.evt_counter == 0);
 
     mem.set_value_at(evt_usbdetected, 1);
     CHECK(nvic_dispatch(power_irqnum) >= 0);
-    CHECK(evt_counter == 1);
+    CHECK(dummy_event_handler.evt_counter == 1);
 }

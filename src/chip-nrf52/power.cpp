@@ -24,7 +24,7 @@ Power power;
 
 }  // namespace
 
-Power::Power() : driver::Peripheral(periph::id_to_base(0), 0, event_handlers_, Power::Event::NUM_EVENTS) {
+Power::Power() : driver::Peripheral(periph::id_to_base(0), 0, &event_handlers_) {
 }
 
 void Power::handle_irq() {

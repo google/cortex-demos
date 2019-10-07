@@ -24,11 +24,13 @@
 
 namespace {
 
-static evt_handler_func_t evt_handlers[3];
+using handlers_t = driver::Peripheral::HandlerContainerT;
+
+handlers_t evt_handlers(3, nullptr);
 
 class TestPeriph : public driver::Peripheral {
     public:
-        TestPeriph() : Peripheral(0x40001000, 1, evt_handlers, ARRAY_SIZE(evt_handlers)) {}
+        TestPeriph() : Peripheral(0x40001000, 1, &evt_handlers) {}
         void enable_interrupts(uint32_t) override {}
         void disable_interrupts(uint32_t) override {}
 
@@ -55,12 +57,15 @@ static void dummy_handler() {
     test_periph.handle_events();
 }
 
-static int counter = 0;
+class DummyEventHandler : public driver::EventHandler {
+    public:
+        void handle_event(driver::EventInfo* e_info) override {
+            (void)e_info;
+            ++counter;
+        }
 
-static void event_handler(int evt) {
-    (void)evt;
-    ++counter;
-}
+        int counter = 0;
+};
 
 }  // namespace
 
@@ -70,11 +75,13 @@ TEST_CASE("Test IRQ Setting") {
 
     nvic_init();
 
+    DummyEventHandler event_handler;
+
     test_periph.set_irq_handler(dummy_handler);
-    CHECK(test_periph.add_event_handler(1, event_handler) >= 0);
-    CHECK(counter == 0);
+    CHECK(test_periph.add_event_handler(1, &event_handler) >= 0);
+    CHECK(event_handler.counter == 0);
     nvic_dispatch(test_periph.get_irq_num());
-    CHECK(counter == 1);
+    CHECK(event_handler.counter == 1);
 
     CHECK(test_periph.is_clear == true);
 }

@@ -20,15 +20,30 @@
 #include <cstddef>
 #include <cstdbool>
 
+#include <vector>
+
 typedef void (*evt_handler_func_t)(int);
 
 namespace driver {
 
+struct EventInfo {
+    int irq_n;
+    int evt_id;
+    void* src;
+    void* data;
+};
+
+class EventHandler {
+    public:
+        virtual void handle_event(EventInfo* e_info) = 0;
+};
+
 class Peripheral {
     public:
+        using HandlerContainerT = std::vector<EventHandler*>;
         Peripheral() : base_{0}, irq_n_{0} {};
         Peripheral(uint32_t base, unsigned int irq_n) : base_ {base}, irq_n_{irq_n} {}
-        Peripheral(uint32_t base, unsigned int irq_n, evt_handler_func_t* evt_handlers, size_t num_handlers);
+        Peripheral(uint32_t base, unsigned int irq_n, HandlerContainerT* evt_handlers);
         Peripheral(const Peripheral&) = delete;
 
         uint32_t get_base() const {
@@ -44,7 +59,7 @@ class Peripheral {
         void disable_irq() const;
 
         void handle_events();
-        int add_event_handler(unsigned int evt, evt_handler_func_t handler);
+        int add_event_handler(unsigned int evt, EventHandler* handler);
 
         virtual void enable_interrupts(uint32_t) {};
         virtual void disable_interrupts(uint32_t) {};
@@ -57,8 +72,8 @@ class Peripheral {
         const unsigned int irq_n_;
 
     private:
-        evt_handler_func_t* evt_handlers_ = nullptr;
-        const size_t num_event_handlers_ = 0;
+
+        HandlerContainerT* evt_handlers_ = nullptr;
 };
 
 }  // namespace driver
