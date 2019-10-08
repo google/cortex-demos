@@ -43,15 +43,16 @@ sources = Split(
         'nvic.c '
         'os_startup.c '
         'syscontrol.c '
-        'cpp_rt.c '
         'pinctrl.cpp '
         'core/thread.cpp '
         ) + chip_sources + driver_sources
+
+fw_sources = Split('cpp_rt.c cpp_alloc.cpp')
 
 native_objects = [demos_obj(native_env, s, lib_suffix='native') for s in sources]
 native_env.StaticLibrary(target='demos_%s_native' % hwenv['CHIP'], source=native_objects)
 
 if GetOption('build_firmware'):
-  objects = [demos_obj(hwenv, s) for s in sources]
+  objects = [demos_obj(hwenv, s) for s in sources + fw_sources]
   demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
   Return('demos_lib')

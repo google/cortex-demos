@@ -15,6 +15,7 @@ void operator delete(void* ptr, unsigned) {
 void* operator new  (size_t count) {
     return pvPortMalloc(count);
 }
+
 void* operator new[](size_t count) {
     return pvPortMalloc(count);
 }
