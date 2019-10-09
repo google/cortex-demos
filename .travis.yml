@@ -1,5 +1,9 @@
+dist: bionic
 language: cpp
 compiler: gcc
 before_install:
-  - sudo apt-get -y install scons
-script: scons --no-build-apps --no-build-firmware && ./run_all_tests.sh
+  - sudo apt-get -y install scons gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+addons:
+    apt:
+        update: true
+script: scons -j 4 && ./run_all_tests.sh
