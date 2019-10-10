@@ -46,8 +46,18 @@
 
 static irq_handler_func_t __attribute__((aligned(CHIP_IRQ_TABLE_ALIGN))) vector_table[CHIP_NUM_IRQS - IRQ_OFFSET];
 
-void blocking_handler(void) {
+static void blocking_handler(void) {
+#ifndef CHIP_NATIVETEST
     while (1);
+#else
+    /* FIXME: Find a better way to report test failure */
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wdiv-by-zero"
+#    pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+    static volatile int __failure;
+    __failure = 1 / 0;
+#    pragma GCC diagnostic pop
+#endif
 }
 
 void nvic_init(void) {

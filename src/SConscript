@@ -45,6 +45,7 @@ sources = Split(
         'syscontrol.c '
         'pinctrl.cpp '
         'core/thread.cpp '
+        'core/init.cpp '
         ) + chip_sources + driver_sources
 
 fw_sources = Split('cpp_rt.c cpp_alloc.cpp')
