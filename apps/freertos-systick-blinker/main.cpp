@@ -18,6 +18,7 @@
 #include "task.h"
 
 #include "core/freertos_thread.hpp"
+#include "core/init.hpp"
 #include "clk.h"
 #include "gpio.h"
 #include "memio.h"
@@ -101,10 +102,7 @@ int main() {
 
     g_cpu_clock_hz = clk_get_rate(SAM4S_CLK_MCK);
 
-    nvic_init();
-
-    nvic_set_handler(IRQ_SVCALL, vPortSVCHandler);
-    nvic_set_handler(IRQ_PENDSV, xPortPendSVHandler);
+    os::init();
     nvic_set_handler(IRQ_SYSTICK, xPortSysTickHandler);
 
     blinker_thread.init();

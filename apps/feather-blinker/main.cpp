@@ -20,21 +20,14 @@
 #include <stdio.h>
 
 #include "core/freertos_thread.hpp"
+#include "core/init.hpp"
 #include "driver/timer.hpp"
 #include "driver/uart.hpp"
 #include "driver/adc.hpp"
 #include "gpio.h"
 #include "memio.h"
-#include "nvic.h"
 
 namespace {
-
-uint8_t alloc_buffer[100];
-
-extern "C" void* _sbrk(int incr) {
-    (void)incr;
-    return alloc_buffer;
-}
 
 extern "C" void xPortSysTickHandler(void);
 
@@ -112,10 +105,7 @@ class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
 
 
 int main() {
-    nvic_init();
-
-    nvic_set_handler(IRQ_SVCALL, vPortSVCHandler);
-    nvic_set_handler(IRQ_PENDSV, xPortPendSVHandler);
+    os::init();
 
     blinker_thread.init();
 
