@@ -65,7 +65,7 @@ def get_chip_apps(chip):
         return ['nvic-hwtest']
 
 env = Environment(
-        CCFLAGS = ['-Wall', '-g', '-Wundef', '-Wextra', '-Wredundant-decls',
+        CCFLAGS = ['-Wall', '-Wundef', '-Wextra', '-Wredundant-decls',
             '-fdiagnostics-color=always'],
         CFLAGS = ['-std=c11', '-Wstrict-prototypes'],
         CXXFLAGS = ['-std=c++17'],
@@ -106,15 +106,19 @@ native_env.AppendUnique(
         )
 for chip in supported_chips:
     chip_hwenv = make_chip_hwenv(hwenv, chip)
-    SConscript('src/SConscript', exports=dict(hwenv=chip_hwenv, native_env=native_env))
+    SConscript('src/SConscript',
+               variant_dir=os.path.join('build', 'mainlib', chip),
+               exports=dict(hwenv=chip_hwenv, native_env=native_env))
 
 test_env = native_env.Clone()
 test_env.AppendUnique(LIBPATH='#/src', CPPPATH='#')
 
 for chip in supported_chips:
+    chip_test_env = test_env.Clone()
+    chip_test_env.AppendUnique(LIBPATH=[os.path.join('#', 'build', 'mainlib', chip)])
     test_lib = SConscript('tests/SConscript',
             variant_dir=os.path.join('build', 'tests', chip),
-            exports=dict(env=test_env, chip=chip))
+            exports=dict(env=chip_test_env, chip=chip))
 
 # Applications
 if GetOption('build_apps'):
@@ -122,11 +126,11 @@ if GetOption('build_apps'):
   app_test_env.AppendUnique(LIBS=test_lib)
 
   app_env = hwenv.Clone()
-  app_env.AppendUnique(LIBPATH='#/src', CPPPATH=[os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include')])
+  app_env.AppendUnique(LIBS='demos', CPPPATH=[os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include')])
 
   for chip in supported_chips:
       chip_hwenv = make_chip_hwenv(app_env, chip)
-      chip_hwenv.AppendUnique(LIBS='demos_%s' % chip.lower())
+      chip_hwenv.AppendUnique(LIBPATH=[os.path.join('#', 'build', 'mainlib', chip)])
       for app in get_chip_apps(chip):
           freertos_port_name = chipconf.get_freertos_port(chip)
           app_hwenv = chip_hwenv.Clone()

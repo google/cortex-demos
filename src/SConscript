@@ -18,7 +18,6 @@ Import('hwenv')
 Import('native_env')
 
 def demos_obj(env, src, lib_suffix=None):
-    lib_suffix = lib_suffix or env['CHIP'].lower()
     suffix = None
 
     srcname = src
@@ -30,9 +29,10 @@ def demos_obj(env, src, lib_suffix=None):
     if srcname.endswith('.cpp'):
         suffix = '.cpp'
 
-    return env.Object(
-            target=srcname.replace(suffix, '_%s.o' % lib_suffix),
-            source=srcname)
+    target = srcname.replace(suffix, '.o')
+    if lib_suffix:
+      target = srcname.replace(suffix, '_%s.o' % lib_suffix)
+    return env.Object(target=target, source=srcname)
 
 chip_sources = hwenv.Glob('chip-%s/*.c' % hwenv['CHIP'].lower())
 chip_sources += hwenv.Glob('chip-%s/*.cpp' % hwenv['CHIP'].lower())
@@ -51,9 +51,9 @@ sources = Split(
 fw_sources = Split('cpp_rt.c cpp_alloc.cpp')
 
 native_objects = [demos_obj(native_env, s, lib_suffix='native') for s in sources]
-native_env.StaticLibrary(target='demos_%s_native' % hwenv['CHIP'], source=native_objects)
+native_env.StaticLibrary(target='demos_native', source=native_objects)
 
 if GetOption('build_firmware'):
   objects = [demos_obj(hwenv, s) for s in sources + fw_sources]
-  demos_lib = hwenv.StaticLibrary(target='demos_%s' % hwenv['CHIP'], source=objects)
+  demos_lib = hwenv.StaticLibrary(target='demos', source=objects)
   Return('demos_lib')
