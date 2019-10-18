@@ -17,13 +17,11 @@
 #include "nvic.h"
 
 #include <stdint.h>
-#include <string.h>
 
 #include "chip.h"
 #include "cutils.h"
 #include "memio.h"
 #include "syscontrol.h"
-#include "types.h"
 
 #define SCB_ICSR        (0xe000ed04)
 #define SCB_ICSR_NMIPENDSET     (1 << 31)
@@ -61,9 +59,11 @@ static void blocking_handler(void) {
 }
 
 void nvic_init(void) {
-    memset(vector_table, 0, sizeof(vector_table));
+	for (size_t i = 0; i < ARRAY_SIZE(vector_table); ++i) {
+		vector_table[i] = 0;
+	}
     /* Only relocate top of the stack and reset handler */
-    syscontrol_relocate_vt((ubase_t)vector_table, 1);
+    syscontrol_relocate_vt((uintptr_t)vector_table, 1);
     for (int i = IRQ_NMI; i < IRQ_IRQ0; ++i) {
         nvic_set_handler(i, blocking_handler);
     }

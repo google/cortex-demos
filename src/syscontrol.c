@@ -23,7 +23,7 @@
 #define SCB_ICSR        (SCB_BASE + 0x04)
 #define SCB_VTOR        (SCB_BASE + 0x08)
 
-void syscontrol_relocate_vt(ubase_t new_addr, unsigned num_vectors) {
+void syscontrol_relocate_vt(uintptr_t new_addr, unsigned num_vectors) {
     uint32_t old_location = raw_read32(SCB_VTOR);
     /* FIXME: this does not check the alignment */
     /* Adjust for the stack top location */
