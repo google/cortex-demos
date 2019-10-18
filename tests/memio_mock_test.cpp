@@ -98,9 +98,9 @@ TEST_CASE("Test Memory Journal") {
 
     const auto& journal = mem.get_journal();
     const auto entry_it = std::find_if(journal.begin(), journal.end(),
-            [](const mock::Memory::JournalT::value_type& entry) {
-                return std::get<0>(entry) == mock::Memory::Op::READ16;
-            });
+    [](const mock::Memory::JournalT::value_type & entry) {
+        return std::get<0>(entry) == mock::Memory::Op::READ16;
+    });
 
     CHECK(entry_it != journal.end());
 }

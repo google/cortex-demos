@@ -60,14 +60,14 @@ int gpio_set_option(uint32_t port, uint32_t mask, enum gpio_option opt) {
     (void)port;
     int ret = 0;
     switch (opt) {
-        case GPIO_OPT_OUTPUT:
-            raw_write32(GPIO_DIRSET, mask);
-            break;
-        case GPIO_OPT_INPUT:
-            raw_write32(GPIO_DIRCLR, mask);
-            break;
-        default:
-            ret = -1;
+    case GPIO_OPT_OUTPUT:
+        raw_write32(GPIO_DIRSET, mask);
+        break;
+    case GPIO_OPT_INPUT:
+        raw_write32(GPIO_DIRCLR, mask);
+        break;
+    default:
+        ret = -1;
     }
 
     return ret;

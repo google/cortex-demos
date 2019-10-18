@@ -76,7 +76,7 @@ class UARTE : public UART, public nrf52::Peripheral {
             uint32_t config_value = 0;
 
             if ((pinctrl::get_pin(func_group + pf::UARTE_CTS) > 0)
-                    && (pinctrl::get_pin(func_group + pf::UARTE_RTS) > 0)) {
+                && (pinctrl::get_pin(func_group + pf::UARTE_RTS) > 0)) {
                 config_value |= kConfigHwFlow;
             }
 
@@ -196,14 +196,14 @@ UARTE uarte1{kUarte1ID};
 UART* UART::request_by_id(UART::ID id) {
     UART* ret = nullptr;
     switch (id) {
-        case ID::UARTE0:
-            ret = &uarte0;
-            break;
-        case ID::UARTE1:
-            ret = &uarte1;
-            break;
-        default:
-            break;
+    case ID::UARTE0:
+        ret = &uarte0;
+        break;
+    case ID::UARTE1:
+        ret = &uarte1;
+        break;
+    default:
+        break;
     }
 
     if (ret) {

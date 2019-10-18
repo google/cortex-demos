@@ -144,11 +144,11 @@ SAADC saadc{kSaadcID};
 ADC* ADC::request_by_id(ADC::ID id) {
     ADC* ret = nullptr;
     switch (id) {
-        case ID::ADC0:
-            ret = &saadc;
-            break;
-        default:
-            break;
+    case ID::ADC0:
+        ret = &saadc;
+        break;
+    default:
+        break;
     }
 
     if (ret) {

@@ -17,22 +17,22 @@
 #include <cstdint>
 #include <cstddef>
 
-void __attribute__((weak)) operator delete(void* ptr) {
+void __attribute__((weak)) operator delete (void* ptr) {
     (void)ptr;
     while (1);
 }
 
-void __attribute__((weak)) operator delete(void* ptr, unsigned) {
+void __attribute__((weak)) operator delete (void* ptr, unsigned) {
     (void)ptr;
     while (1);
 }
 
-void __attribute__((weak)) operator delete(void* ptr, long unsigned) {
+void __attribute__((weak)) operator delete (void* ptr, long unsigned) {
     (void)ptr;
     while (1);
 }
 
-void* __attribute__((weak)) operator new  (size_t count) throw() {
+void* __attribute__((weak)) operator new (size_t count) throw() {
     (void)count;
     return nullptr;
 }

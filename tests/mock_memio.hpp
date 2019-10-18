@@ -123,13 +123,13 @@ class IOHandlerStub {
  */
 class RegSetClearStub : public IOHandlerStub {
     public:
-     /**
-      * @brief Constructor for the handler.
-      *
-      * @param addr Normal Read/Write access address.
-      * @param set_addr Address for "set" access.
-      * @param clr_addr Address for "clear" access.
-      */
+        /**
+         * @brief Constructor for the handler.
+         *
+         * @param addr Normal Read/Write access address.
+         * @param set_addr Address for "set" access.
+         * @param clr_addr Address for "clear" access.
+         */
         RegSetClearStub(uint32_t addr, uint32_t set_addr, uint32_t clr_addr) :
             rw_addr_{addr}, set_addr_{set_addr}, clr_addr_{clr_addr} {}
 
@@ -278,7 +278,7 @@ class WriteSink : public IOHandlerStub {
 class Memory {
     public:
         Memory() = default;
-        Memory(const Memory& ) = delete;
+        Memory(const Memory&) = delete;
         enum class Op {
             READ8,
             READ16,

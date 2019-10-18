@@ -86,17 +86,17 @@ int gpio_set_option(uint32_t port, uint32_t mask, enum gpio_option opt) {
     int ret = 0;
     const uint32_t port_base = ports[port];
     switch (opt) {
-        case GPIO_OPT_OUTPUT:
-            raw_write32(port_base + PIO_PER, mask);
-            raw_write32(port_base + PIO_OER, mask);
-            break;
-        case GPIO_OPT_INPUT:
-            raw_write32(port_base + PIO_PER, mask);
-            raw_write32(port_base + PIO_ODR, mask);
-            break;
-        default:
-            ret = -1;
-            break;
+    case GPIO_OPT_OUTPUT:
+        raw_write32(port_base + PIO_PER, mask);
+        raw_write32(port_base + PIO_OER, mask);
+        break;
+    case GPIO_OPT_INPUT:
+        raw_write32(port_base + PIO_PER, mask);
+        raw_write32(port_base + PIO_ODR, mask);
+        break;
+    default:
+        ret = -1;
+        break;
     }
 
     return ret;

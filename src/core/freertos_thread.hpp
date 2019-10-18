@@ -34,8 +34,8 @@ class ThreadStatic : public Thread {
 
         void init() override {
             handle_ = xTaskCreateStatic(
-                    os::run_thread, name_, ARRAY_SIZE(stack_buffer_),
-                    this, priority_, stack_buffer_, &task_);
+                          os::run_thread, name_, ARRAY_SIZE(stack_buffer_),
+                          this, priority_, stack_buffer_, &task_);
 
             threadASSERT(handle_);
         }

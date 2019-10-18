@@ -57,19 +57,19 @@ uint8_t raw_read8(uint8_t addr);
 #define wait_mask_le32(addr, mask) while (!(raw_read32((addr)) & mask))
 
 #define raw_setbits_le32(addr, mask) do {\
-    __typeof__(addr) _addr = (addr);\
-    raw_write32(_addr, raw_read32(_addr) | (mask));\
-} while (0)
+        __typeof__(addr) _addr = (addr);\
+        raw_write32(_addr, raw_read32(_addr) | (mask));\
+    } while (0)
 
 #define raw_clrbits_le32(addr, mask) do {\
-    __typeof__(addr) _addr = (addr);\
-    raw_write32(_addr, raw_read32(_addr) & ~(mask));\
-} while (0)
+        __typeof__(addr) _addr = (addr);\
+        raw_write32(_addr, raw_read32(_addr) & ~(mask));\
+    } while (0)
 
 #define raw_set_masked(addr, mask, value) do {\
-    __typeof__(addr) _addr = (addr);\
-    __auto_type _cvalue = raw_read32(_addr);\
-    _cvalue &= ~(mask);\
-    _cvalue |= mask & (value);\
-    raw_write32(_addr, _cvalue);\
-} while (0)
+        __typeof__(addr) _addr = (addr);\
+        __auto_type _cvalue = raw_read32(_addr);\
+        _cvalue &= ~(mask);\
+        _cvalue |= mask & (value);\
+        raw_write32(_addr, _cvalue);\
+    } while (0)

@@ -43,13 +43,13 @@ TWIM twim1{kTwim1ID};
 
 I2C* I2C::request_by_id(int id) {
     I2C* res = nullptr;
-    switch(id) {
-        case nrf52::TWIM0:
-            res = &twim0;
-            break;
-        case nrf52::TWIM1:
-            res = &twim1;
-            break;
+    switch (id) {
+    case nrf52::TWIM0:
+        res = &twim0;
+        break;
+    case nrf52::TWIM1:
+        res = &twim1;
+        break;
     }
 
     if (res) {

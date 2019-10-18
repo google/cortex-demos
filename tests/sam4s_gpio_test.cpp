@@ -75,7 +75,9 @@ TEST_CASE("Test GPIO set/get/clear memory writes") {
     constexpr uint32_t gpio2 = (1 << 14);
 
     auto port_index = 0;
-    for (auto base : {porta_base, portb_base, portc_base}) {
+    for (auto base : {
+             porta_base, portb_base, portc_base
+         }) {
         mock::RegSetClearStub out_stub{out_value(base), out_set(base), out_clr(base)};
         mem.set_addr_io_handler(out_set(base), out_set(base) + 12, &out_stub);
 
@@ -109,7 +111,9 @@ TEST_CASE("Test GPIO Direction setting") {
     constexpr uint32_t gpio2 = (1 << 18);
 
     auto port_index = 0;
-    for (auto base : {porta_base, portb_base, portc_base}) {
+    for (auto base : {
+             porta_base, portb_base, portc_base
+         }) {
         mock::RegSetClearStub pio_pxr_stub{pio_psr(base), pio_per(base), pio_pdr(base)};
         mem.set_addr_io_handler(pio_per(base), pio_per(base) + 12, &pio_pxr_stub);
 

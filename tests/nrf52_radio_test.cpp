@@ -59,7 +59,9 @@ TEST_CASE("Radio API") {
         // For my own sanity
         radio->set_txpower(-12);
         CHECK(mem.get_value_at(radio_base + 0x50c) == 0xf4);
-        for (int8_t power : {4, 3, 0, -4, -8, -12, -16, -20, -40}) {
+        for (int8_t power : {
+                 4, 3, 0, -4, -8, -12, -16, -20, -40
+             }) {
             CHECK(radio->set_txpower(power) >= 0);
             const auto reg_value = (int8_t)get_reg_value(0x50c);
             CHECK(reg_value == power);

@@ -65,15 +65,15 @@ class RTC : public Timer, public nrf52::Peripheral {
             if (!irq_handler_configured_) {
                 void (*handler)(void) = nullptr;
                 switch (irq_n_) {
-                    case 11:
-                        handler = rtc0_irq_handler;
-                        break;
-                    case 17:
-                        handler = rtc1_irq_handler;
-                        break;
-                    case 36:
-                        handler = rtc2_irq_handler;
-                        break;
+                case 11:
+                    handler = rtc0_irq_handler;
+                    break;
+                case 17:
+                    handler = rtc1_irq_handler;
+                    break;
+                case 36:
+                    handler = rtc2_irq_handler;
+                    break;
                 }
 
                 if (handler) {
@@ -194,32 +194,32 @@ TimerCounter timer4{27};
 Timer* Timer::get_by_id(ID id) {
     Timer* ret = nullptr;
     switch (id) {
-        case ID::RTC0:
-            ret = &rtc0;
-            break;
-        case ID::RTC1:
-            ret = &rtc1;
-            break;
-        case ID::RTC2:
-            ret = &rtc2;
-            break;
-        case ID::TIMER0:
-            ret = &timer0;
-            break;
-        case ID::TIMER1:
-            ret = &timer1;
-            break;
-        case ID::TIMER2:
-            ret = &timer2;
-            break;
-        case ID::TIMER3:
-            ret = &timer3;
-            break;
-        case ID::TIMER4:
-            ret = &timer4;
-            break;
-        default:
-            break;
+    case ID::RTC0:
+        ret = &rtc0;
+        break;
+    case ID::RTC1:
+        ret = &rtc1;
+        break;
+    case ID::RTC2:
+        ret = &rtc2;
+        break;
+    case ID::TIMER0:
+        ret = &timer0;
+        break;
+    case ID::TIMER1:
+        ret = &timer1;
+        break;
+    case ID::TIMER2:
+        ret = &timer2;
+        break;
+    case ID::TIMER3:
+        ret = &timer3;
+        break;
+    case ID::TIMER4:
+        ret = &timer4;
+        break;
+    default:
+        break;
     };
 
     return ret;

@@ -94,7 +94,7 @@ void Memory::write16(uint32_t addr, uint16_t value) {
     const auto write_addr = addr & (~3);
     uint32_t old_value = priv_read32(write_addr);
     auto new_value = (old_value & (~(0xffff << (8 * (addr & 2)))))
-        | (value << (8 * (addr & 2)));
+                     | (value << (8 * (addr & 2)));
 
     priv_write32(write_addr, new_value);
 }
@@ -165,15 +165,15 @@ const Memory::JournalT& Memory::get_journal() const {
 }
 
 unsigned int Memory::get_op_count(Op op) const {
-    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry& entry) -> bool{
-            return std::get<0>(entry) == op;
-            });
+    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry & entry) -> bool{
+        return std::get<0>(entry) == op;
+    });
 }
 
 unsigned int Memory::get_op_count(Op op, uint32_t addr) const {
-    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry& entry) -> bool{
-            return std::get<0>(entry) == op && std::get<1>(entry) == addr;
-            });
+    return std::count_if(journal_.begin(), journal_.end(), [&](JournalEntry & entry) -> bool{
+        return std::get<0>(entry) == op && std::get<1>(entry) == addr;
+    });
 }
 
 void Memory::reset() {
@@ -199,13 +199,13 @@ void Memory::print_journal() const {
     for (const auto& entry : journal_)  {
         std::string op = "XX";
         switch (std::get<0>(entry)) {
-            case Memory::Op::WRITE32:
-                op = "W32";
-                break;
-            case Memory::Op::READ32:
-                op = "R32";
-            default:
-                break;
+        case Memory::Op::WRITE32:
+            op = "W32";
+            break;
+        case Memory::Op::READ32:
+            op = "R32";
+        default:
+            break;
         }
 
         std::cout << op << ": " << std::hex << std::get<1>(entry) << " " << std::get<2>(entry) << std::endl;

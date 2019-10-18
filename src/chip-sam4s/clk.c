@@ -116,7 +116,7 @@ static int _start_main_crystal(void) {
     uint32_t current_value = raw_read32(CKGR_MOR);
     current_value &= ~CKGR_MOR_MOSCXTST_MASK;
     raw_write32(CKGR_MOR,
-            (current_value | CKGR_MOR_KEY | CKGR_MOR_MOSCXTEN | CRYSTAL_STARTUP_TICKS));
+                (current_value | CKGR_MOR_KEY | CKGR_MOR_MOSCXTEN | CRYSTAL_STARTUP_TICKS));
 
     wait_mask_le32(PMC_SR, PMC_SR_MOSCXTS);
     return 0;
@@ -138,7 +138,7 @@ static int _switch_to_main_crystal(void) {
     clkASSERT(current_value & CKGR_MOR_MOSCXTEN);
 
     raw_write32(CKGR_MOR,
-            (current_value | CKGR_MOR_KEY | CKGR_MOR_MOSCSEL));
+                (current_value | CKGR_MOR_KEY | CKGR_MOR_MOSCSEL));
 
     wait_mask_le32(PMC_SR, PMC_SR_MOSCSELS);
     wait_mask_le32(CKGR_MCFR, CKGR_MCFR_MAINFRDY);
@@ -164,18 +164,18 @@ int clk_request(int clk_id) {
     }
 
     switch (clk_id) {
-        case SAM4S_CLK_HF_CRYSTAL:
-            ret = _start_main_crystal();
-            break;
-        case SAM4S_CLK_MAINCK:
-            ret = _switch_to_main_crystal();
-            break;
-        case SAM4S_CLK_XTAL_EXT:
-            ret = _switch_to_slow_ext_crystal();
-            break;
-        default:
-            ret = -1;
-            break;
+    case SAM4S_CLK_HF_CRYSTAL:
+        ret = _start_main_crystal();
+        break;
+    case SAM4S_CLK_MAINCK:
+        ret = _switch_to_main_crystal();
+        break;
+    case SAM4S_CLK_XTAL_EXT:
+        ret = _switch_to_slow_ext_crystal();
+        break;
+    default:
+        ret = -1;
+        break;
     }
 
     return ret;
@@ -218,18 +218,18 @@ static inline unsigned int _get_mck_rate(void) {
     const uint32_t mckr = raw_read32(PMC_MCKR);
     unsigned mckr_src_rate = 0;
     switch (mckr & PMC_MCKR_CSS_MASK) {
-        case PMC_MCKR_CSS_SLOW_CLK:
-            mckr_src_rate = clk_get_rate(SAM4S_CLK_SLCK);
-            break;
-        case PMC_MCKR_CSS_MAIN_CLK:
-            mckr_src_rate = clk_get_rate(SAM4S_CLK_MAINCK);
-            break;
-        case PMC_MCKR_CSS_PLLA_CLK:
-            mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLACK);
-            break;
-        case PMC_MCKR_CSS_PLLB_CLK:
-            mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
-            break;
+    case PMC_MCKR_CSS_SLOW_CLK:
+        mckr_src_rate = clk_get_rate(SAM4S_CLK_SLCK);
+        break;
+    case PMC_MCKR_CSS_MAIN_CLK:
+        mckr_src_rate = clk_get_rate(SAM4S_CLK_MAINCK);
+        break;
+    case PMC_MCKR_CSS_PLLA_CLK:
+        mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLACK);
+        break;
+    case PMC_MCKR_CSS_PLLB_CLK:
+        mckr_src_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
+        break;
     }
 
     uint32_t pres = (mckr >> PMC_MCKR_PRES_SHIFT) & PMC_MCKR_PRES_MASK;
@@ -245,49 +245,49 @@ static inline unsigned int _get_mck_rate(void) {
 unsigned int clk_get_rate(int clk_id) {
     unsigned int ret = 0;
     switch (clk_id) {
-        case SAM4S_CLK_XTAL_RC:
-            ret = XTAL_RC_RATE;
-            break;
-        case SAM4S_CLK_XTAL_EXT:
-            ret = XTAL_EXT_RATE;
-            break;
-        case SAM4S_CLK_SLCK:
-            ret = _get_slck_rate();
-            break;
-        case SAM4S_CLK_FAST_RC:
-            ret = _get_fastrc_rate();
-            break;
-        case SAM4S_CLK_MAINCK:
-            ret = _get_mainck_rate();
-            break;
-        case SAM4S_CLK_HF_CRYSTAL:
-            ret = crystal_rate;
-            break;
-        case SAM4S_CLK_PLLACK:
-            ret = _get_pll_rate(raw_read32(CKGR_PLLAR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLADIV2);
-            break;
-        case SAM4S_CLK_PLLBCK:
-            ret = _get_pll_rate(raw_read32(CKGR_PLLBR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLBDIV2);
-            break;
-        case SAM4S_CLK_PCK:
-        case SAM4S_CLK_FCLK:
-        case SAM4S_CLK_HCLK:
-        case SAM4S_CLK_MCK:
-            ret = _get_mck_rate();
-            break;
-        default:
-            /* FIXME: This returns incorrect value for first 8 clocks
-             * Do they matter?
-             */
-            if (clk_id >= SAM4S_CLK_PIDCK(0) && clk_id < SAM4S_CLK_PIDCK(32)) {
-                if (raw_read32(PMC_PCSR0) & (1 << (clk_id - SAM4S_CLK_PIDCK(0)))) {
-                    ret = _get_mck_rate();
-                }
-            } else if (clk_id >= SAM4S_CLK_PIDCK(32) && clk_id < SAM4S_CLK_PIDCK(35)) {
-                if (raw_read32(PMC_PCSR1) & (1 << (clk_id - SAM4S_CLK_PIDCK(32)))) {
-                    ret = _get_mck_rate();
-                }
+    case SAM4S_CLK_XTAL_RC:
+        ret = XTAL_RC_RATE;
+        break;
+    case SAM4S_CLK_XTAL_EXT:
+        ret = XTAL_EXT_RATE;
+        break;
+    case SAM4S_CLK_SLCK:
+        ret = _get_slck_rate();
+        break;
+    case SAM4S_CLK_FAST_RC:
+        ret = _get_fastrc_rate();
+        break;
+    case SAM4S_CLK_MAINCK:
+        ret = _get_mainck_rate();
+        break;
+    case SAM4S_CLK_HF_CRYSTAL:
+        ret = crystal_rate;
+        break;
+    case SAM4S_CLK_PLLACK:
+        ret = _get_pll_rate(raw_read32(CKGR_PLLAR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLADIV2);
+        break;
+    case SAM4S_CLK_PLLBCK:
+        ret = _get_pll_rate(raw_read32(CKGR_PLLBR), raw_read32(PMC_MCKR) & PMC_MCKR_PLLBDIV2);
+        break;
+    case SAM4S_CLK_PCK:
+    case SAM4S_CLK_FCLK:
+    case SAM4S_CLK_HCLK:
+    case SAM4S_CLK_MCK:
+        ret = _get_mck_rate();
+        break;
+    default:
+        /* FIXME: This returns incorrect value for first 8 clocks
+         * Do they matter?
+         */
+        if (clk_id >= SAM4S_CLK_PIDCK(0) && clk_id < SAM4S_CLK_PIDCK(32)) {
+            if (raw_read32(PMC_PCSR0) & (1 << (clk_id - SAM4S_CLK_PIDCK(0)))) {
+                ret = _get_mck_rate();
             }
+        } else if (clk_id >= SAM4S_CLK_PIDCK(32) && clk_id < SAM4S_CLK_PIDCK(35)) {
+            if (raw_read32(PMC_PCSR1) & (1 << (clk_id - SAM4S_CLK_PIDCK(32)))) {
+                ret = _get_mck_rate();
+            }
+        }
     }
 
     return ret;
@@ -344,21 +344,21 @@ unsigned int clk_request_rate(int clk_id, unsigned int rate) {
     unsigned int ret = 0;
 
     switch (clk_id) {
-        case SAM4S_CLK_PLLACK:
-            ret = _configure_pll(CKGR_PLLAR, rate, CKGR_PLLAR_ONE);
-            if (ret > 0) {
-                wait_mask_le32(PMC_SR, PMC_SR_LOCKA);
-            }
-            break;
-        case SAM4S_CLK_PLLBCK:
-            ret = _configure_pll(CKGR_PLLBR, rate, 0);
-            if (ret > 0) {
-                wait_mask_le32(PMC_SR, PMC_SR_LOCKB);
-            }
-            break;
-        default:
-            ret = clk_get_rate(clk_id);
-            break;
+    case SAM4S_CLK_PLLACK:
+        ret = _configure_pll(CKGR_PLLAR, rate, CKGR_PLLAR_ONE);
+        if (ret > 0) {
+            wait_mask_le32(PMC_SR, PMC_SR_LOCKA);
+        }
+        break;
+    case SAM4S_CLK_PLLBCK:
+        ret = _configure_pll(CKGR_PLLBR, rate, 0);
+        if (ret > 0) {
+            wait_mask_le32(PMC_SR, PMC_SR_LOCKB);
+        }
+        break;
+    default:
+        ret = clk_get_rate(clk_id);
+        break;
     }
 
     return ret;
@@ -369,14 +369,14 @@ static inline int _set_mck_option(int option) {
     unsigned parent_rate = 0;
     uint32_t css = PMC_MCKR_CSS_MAIN_CLK;
     switch (option) {
-        case SAM4S_CLK_PLLACK:
-            parent_rate = clk_get_rate(SAM4S_CLK_PLLACK);
-            css = PMC_MCKR_CSS_PLLA_CLK;
-            break;
-        case SAM4S_CLK_PLLBCK:
-            parent_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
-            css = PMC_MCKR_CSS_PLLB_CLK;
-            break;
+    case SAM4S_CLK_PLLACK:
+        parent_rate = clk_get_rate(SAM4S_CLK_PLLACK);
+        css = PMC_MCKR_CSS_PLLA_CLK;
+        break;
+    case SAM4S_CLK_PLLBCK:
+        parent_rate = clk_get_rate(SAM4S_CLK_PLLBCK);
+        css = PMC_MCKR_CSS_PLLB_CLK;
+        break;
     }
 
     if (parent_rate) {
@@ -399,9 +399,9 @@ static inline int _set_mck_option(int option) {
 int clk_request_option(int clk_id, int option) {
     int ret = -1;
     switch (clk_id) {
-        case SAM4S_CLK_MCK:
-            ret = _set_mck_option(option);
-            break;
+    case SAM4S_CLK_MCK:
+        ret = _set_mck_option(option);
+        break;
     }
 
     return ret;

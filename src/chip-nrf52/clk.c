@@ -73,23 +73,23 @@ static void start_lfclk_sync(void) {
 int clk_request(int clock_id) {
     int ret = -1;
     switch (clock_id) {
-        case NRF52_LFCLK_RC:
-            raw_write32(LFCLKSRC, LFCLK_SRC_RC);
-            start_lfclk_sync();
-            ret = 0;
-            break;
-        case NRF52_LFCLK_XTAL:
-            raw_write32(LFCLKSRC, LFCLK_SRC_XTAL);
-            start_lfclk_sync();
-            ret = 0;
-            break;
-        case NRF52_HFCLK_RC:
-        case NRF52_HFCLK_XTAL:
-            /* FIXME: Waht if this oscillator already running? */
-            raw_write32(TASK(TASK_HFCLKSTART), 1);
-            busy_wait_and_clear_event(EVT_HFCLKSTARTED);
-            ret = 0;
-            break;
+    case NRF52_LFCLK_RC:
+        raw_write32(LFCLKSRC, LFCLK_SRC_RC);
+        start_lfclk_sync();
+        ret = 0;
+        break;
+    case NRF52_LFCLK_XTAL:
+        raw_write32(LFCLKSRC, LFCLK_SRC_XTAL);
+        start_lfclk_sync();
+        ret = 0;
+        break;
+    case NRF52_HFCLK_RC:
+    case NRF52_HFCLK_XTAL:
+        /* FIXME: Waht if this oscillator already running? */
+        raw_write32(TASK(TASK_HFCLKSTART), 1);
+        busy_wait_and_clear_event(EVT_HFCLKSTARTED);
+        ret = 0;
+        break;
     }
 
     return ret;

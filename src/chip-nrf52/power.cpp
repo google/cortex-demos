@@ -45,13 +45,13 @@ Power* Power::request() {
 bool Power::is_usb_detected() const {
     const uint32_t usb_ready_value = raw_read32(base_ + kUSBRegStatusOffset);
     return is_event_active(Event::USBDETECTED) ||
-        (usb_ready_value & kUSBRegStatusVbusDetect);
+           (usb_ready_value & kUSBRegStatusVbusDetect);
 }
 
 bool Power::is_usb_power_ready() const {
     const uint32_t usb_ready_value = raw_read32(base_ + kUSBRegStatusOffset);
     return is_event_active(Event::USBPWRRDY) ||
-        (usb_ready_value & kUSBRegStatusOutputRdy);
+           (usb_ready_value & kUSBRegStatusOutputRdy);
 }
 
 }  // namespace nrf52

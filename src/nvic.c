@@ -49,14 +49,14 @@ static void blocking_handler(void) {
 #ifndef CHIP_NATIVETEST
     while (1);
 #else
-	abort();
+    abort();
 #endif
 }
 
 void nvic_init(void) {
-	for (size_t i = 0; i < ARRAY_SIZE(vector_table); ++i) {
-		vector_table[i] = 0;
-	}
+    for (size_t i = 0; i < ARRAY_SIZE(vector_table); ++i) {
+        vector_table[i] = 0;
+    }
     /* Only relocate top of the stack and reset handler */
     syscontrol_relocate_vt((uintptr_t)vector_table, 1);
     for (int i = IRQ_NMI; i < IRQ_IRQ0; ++i) {
@@ -92,15 +92,15 @@ int nvic_irqset(int irqn) {
     if (irqn < 0) {
         uint32_t setbit = 0;
         switch (irqn) {
-            case IRQ_SYSTICK:
-                setbit = SCB_ICSR_PENDSTSET;
-                break;
-            case IRQ_PENDSV:
-                setbit = SCB_ICSR_PENDSVSET;
-                break;
-            case IRQ_NMI:
-                setbit = SCB_ICSR_NMIPENDSET;
-                break;
+        case IRQ_SYSTICK:
+            setbit = SCB_ICSR_PENDSTSET;
+            break;
+        case IRQ_PENDSV:
+            setbit = SCB_ICSR_PENDSVSET;
+            break;
+        case IRQ_NMI:
+            setbit = SCB_ICSR_NMIPENDSET;
+            break;
         }
 
         if (setbit) {
@@ -117,13 +117,13 @@ int nvic_irqset(int irqn) {
 
 void nvic_enable_irqs() {
 #if defined(__arm__) && defined(__thumb__)
-    __asm__ ("cpsie i");
+    __asm__("cpsie i");
 #endif
 }
 
 void nvic_disable_irqs() {
 #if defined(__arm__) && defined(__thumb__)
-    __asm__ ("cpsid i");
+    __asm__("cpsid i");
 #endif
 }
 

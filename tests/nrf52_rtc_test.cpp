@@ -41,7 +41,7 @@ TEST_CASE("RTC API") {
     auto& mem = mock::get_global_memory();
     mem.reset();
 
-    const auto& test_start_stop = [&mem](driver::Timer* timer, uint32_t base) {
+    const auto& test_start_stop = [&mem](driver::Timer * timer, uint32_t base) {
         // Make LFCLK started event read as 1
         mem.set_value_at(clock_base + 0x104, 1);
         timer->start();
@@ -54,7 +54,7 @@ TEST_CASE("RTC API") {
         // but needs to have a reliable test.
     };
 
-    const auto& test_prescaler = [&mem](driver::Timer* timer, uint32_t base) {
+    const auto& test_prescaler = [&mem](driver::Timer * timer, uint32_t base) {
         constexpr unsigned int base_rate = 0x8000;
         CHECK(timer->get_rate() == base_rate);
 
@@ -65,7 +65,7 @@ TEST_CASE("RTC API") {
         CHECK(timer->get_rate() == (base_rate / 8));
     };
 
-    const auto& test_enable_interrupt = [&mem](driver::Timer* timer, uint32_t base) {
+    const auto& test_enable_interrupt = [&mem](driver::Timer * timer, uint32_t base) {
         DummyEventHandler dummy_evt_handler;
         timer->add_event_handler(0, &dummy_evt_handler);
         mem.set_value_at(base + 0x100, 1);

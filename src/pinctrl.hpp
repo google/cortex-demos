@@ -22,10 +22,10 @@
 #define PINCTRL_ENTRY_LIST_END };
 
 #define PINCTRL_DEFINE_BOARD_CONFIG static const struct config board_config = { \
-    .n_entries = sizeof(pinconfig_entries) / sizeof(pinconfig_entries[0]), \
-    .entries = pinconfig_entries, \
-}; \
-	const struct config* const board_pin_config = &board_config;
+        .n_entries = sizeof(pinconfig_entries) / sizeof(pinconfig_entries[0]), \
+                     .entries = pinconfig_entries, \
+    }; \
+    const struct config* const board_pin_config = &board_config;
 
 namespace pinctrl {
 

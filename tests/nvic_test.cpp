@@ -59,7 +59,7 @@ TEST_CASE("Test Interrupt Dispatch") {
     CHECK(counter == 1);
     CHECK(nvic_dispatch(IRQ_NMI) >= 0);
     CHECK(counter == 2);
-    CHECK(nvic_dispatch(0) >=0);
+    CHECK(nvic_dispatch(0) >= 0);
     CHECK(counter == 3);
 }
 

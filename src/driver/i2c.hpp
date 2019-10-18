@@ -11,7 +11,9 @@ class I2C : virtual public Peripheral {
         I2C() {}
         I2C(uint32_t base, unsigned int irq_n) : Peripheral(base, irq_n) {}
 
-        virtual int request() { return -1; }
+        virtual int request() {
+            return -1;
+        }
 
         static I2C* request_by_id(int id);
 };

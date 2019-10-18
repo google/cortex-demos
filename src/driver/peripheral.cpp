@@ -37,7 +37,7 @@ bool Peripheral::is_event_active(int) const {
 }
 
 Peripheral::Peripheral(uint32_t base, unsigned int irq_n, HandlerContainerT* evt_handlers) :
-        base_{base}, irq_n_{irq_n}, evt_handlers_{evt_handlers} {
+    base_{base}, irq_n_{irq_n}, evt_handlers_{evt_handlers} {
 }
 
 void Peripheral::handle_events() {

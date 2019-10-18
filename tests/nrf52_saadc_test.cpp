@@ -62,7 +62,9 @@ TEST_CASE("Test ADC API") {
 
         CHECK(saadc->get_num_channels() == 2);
 
-        for (auto ch : {1, 3, 4, 5, 6, 7}) {
+        for (auto ch : {
+                 1, 3, 4, 5, 6, 7
+             }) {
             CAPTURE(ch);
             CHECK(get_reg_value(chx_pselp(ch)) == 0);
         }

@@ -41,40 +41,39 @@ class RTCTickHandler : public driver::EventHandler {
 
 extern "C" {
 
-const int __attribute__((used)) uxTopUsedPriority = configMAX_PRIORITIES;
+    const int __attribute__((used)) uxTopUsedPriority = configMAX_PRIORITIES;
 
-void xPortPendSVHandler(void);
-void vPortSVCHandler(void);
+    void xPortPendSVHandler(void);
+    void vPortSVCHandler(void);
 
-void vPortSetupTimerInterrupt(void) {
-    auto* rtc = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
-    auto rate = rtc->get_rate();
-    rtc->set_prescaler(rate / configTICK_RATE_HZ);
-    rtc->add_event_handler(0, &rtc_tick_handler);
-    rtc->enable_tick_interrupt();
-    rtc->start();
-}
+    void vPortSetupTimerInterrupt(void) {
+        auto* rtc = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
+        auto rate = rtc->get_rate();
+        rtc->set_prescaler(rate / configTICK_RATE_HZ);
+        rtc->add_event_handler(0, &rtc_tick_handler);
+        rtc->enable_tick_interrupt();
+        rtc->start();
+    }
 
-// TODO: Move to non-app specific location
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
-                                    StackType_t **ppxIdleTaskStackBuffer,
-                                    uint32_t *pulIdleTaskStackSize )
-{
-static StaticTask_t xIdleTaskTCB;
-static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+    // TODO: Move to non-app specific location
+    void vApplicationGetIdleTaskMemory(StaticTask_t** ppxIdleTaskTCBBuffer,
+                                       StackType_t** ppxIdleTaskStackBuffer,
+                                       uint32_t* pulIdleTaskStackSize) {
+        static StaticTask_t xIdleTaskTCB;
+        static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 
-    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
-    state will be stored. */
-    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+        /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+        state will be stored. */
+        *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
 
-    /* Pass out the array that will be used as the Idle task's stack. */
-    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+        /* Pass out the array that will be used as the Idle task's stack. */
+        *ppxIdleTaskStackBuffer = uxIdleTaskStack;
 
-    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
-    Note that, as the array is necessarily of type StackType_t,
-    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
-    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-}
+        /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+        Note that, as the array is necessarily of type StackType_t,
+        configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+        *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+    }
 
 }  // extern "C"
 

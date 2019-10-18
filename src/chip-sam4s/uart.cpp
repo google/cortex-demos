@@ -88,15 +88,15 @@ class UART : public ::driver::UART {
             uint32_t parity_value = 0;
             uint32_t mr = raw_read32(base_ + kMrOffset);
             switch (parity) {
-                case PARITY::NONE:
-                    parity_value = 4;
-                    break;
-                case PARITY::EVEN:
-                    parity_value = 0;
-                    break;
-                case PARITY::ODD:
-                    parity_value = 1;
-                    break;
+            case PARITY::NONE:
+                parity_value = 4;
+                break;
+            case PARITY::EVEN:
+                parity_value = 0;
+                break;
+            case PARITY::ODD:
+                parity_value = 1;
+                break;
             }
 
             mr &= ~(kMrParMask);
@@ -147,14 +147,14 @@ UART uart1{0x400E0800, 9};
 UART* UART::request_by_id(UART::ID id) {
     UART* ret = nullptr;
     switch (id) {
-        case ID::UART0:
-            ret = &internal::uart0;
-            break;
-        case ID::UART1:
-            ret = &internal::uart1;
-            break;
-        default:
-            break;
+    case ID::UART0:
+        ret = &internal::uart0;
+        break;
+    case ID::UART1:
+        ret = &internal::uart1;
+        break;
+    default:
+        break;
     }
 
     if (ret) {

@@ -20,6 +20,7 @@
 
 namespace pinctrl {
 
+// *INDENT-OFF*
 PINCTRL_ENTRY_LIST_START
     {
         .function = function::UARTE0_RXD,
@@ -66,6 +67,7 @@ PINCTRL_ENTRY_LIST_START
         .pin = 16,
     },
 PINCTRL_ENTRY_LIST_END;
+// *INDENT-ON*
 
 PINCTRL_DEFINE_BOARD_CONFIG;
 
