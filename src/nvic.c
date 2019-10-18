@@ -17,6 +17,7 @@
 #include "nvic.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "chip.h"
 #include "cutils.h"
@@ -48,13 +49,7 @@ static void blocking_handler(void) {
 #ifndef CHIP_NATIVETEST
     while (1);
 #else
-    /* FIXME: Find a better way to report test failure */
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wdiv-by-zero"
-#    pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-    static volatile int __failure;
-    __failure = 1 / 0;
-#    pragma GCC diagnostic pop
+	abort();
 #endif
 }
 
