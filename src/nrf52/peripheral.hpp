@@ -43,6 +43,10 @@ class Peripheral : virtual public driver::Peripheral {
             clear_event(evt);
         }
 
+        void enable() {
+            raw_write32(base_ + kEnableOffset, 1);
+        }
+
     protected:
         void clear_event(int evt) override {
             raw_write32(base_ + kEventsOffset + evt * 4, 0);
@@ -54,6 +58,7 @@ class Peripheral : virtual public driver::Peripheral {
 
     private:
         static constexpr auto kEventsOffset = 0x100;
+        static constexpr auto kEnableOffset = 0x500;
 };
 
 }  // namespace nrf52
