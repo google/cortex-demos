@@ -17,9 +17,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "clk.h"
 #include "core/freertos_thread.hpp"
 #include "core/init.hpp"
-#include "clk.h"
+#include "driver/timer.hpp"
 #include "gpio.h"
 #include "memio.h"
 #include "nvic.h"
@@ -87,17 +88,20 @@ class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
 unsigned int g_cpu_clock_hz;
 
 int main() {
+    auto* wdt = driver::Timer::get_by_id(driver::Timer::ID::WDT0);
+    if (wdt) {
+        wdt->stop();
+    }
+
     clk_request(SAM4S_CLK_XTAL_EXT);
     clk_request(SAM4S_CLK_HF_CRYSTAL);
     clk_request(SAM4S_CLK_MAINCK);
-    /*
     sam4s_set_crystal_frequency(12 * 1000 * 1000);
     unsigned int pll_rate = clk_request_rate(SAM4S_CLK_PLLACK, 80*1000*1000);
 
     if (pll_rate) {
         clk_request_option(SAM4S_CLK_MCK, SAM4S_CLK_PLLACK);
     }
-    */
 
     g_cpu_clock_hz = clk_get_rate(SAM4S_CLK_MCK);
 
