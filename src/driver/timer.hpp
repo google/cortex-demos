@@ -40,6 +40,14 @@ class Timer : virtual public Peripheral {
             TIMER4,
             TIMER5,
             TIMER6,
+
+            WDT0,
+            WDT1,
+            WDT2,
+            WDT3,
+            WDT4,
+            WDT5,
+            WDT6,
         };
 
         static Timer* get_by_id(ID id);
