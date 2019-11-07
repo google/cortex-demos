@@ -23,4 +23,9 @@ uint8_t USBD::get_addr() const {
     return raw_read32(base_ + kAddrOffset);
 }
 
+void USBD::pullup(bool enable) {
+    const uint32_t value = enable ? 1 : 0;
+    raw_write32(base_ + kPullupOffset, value);
+}
+
 }  // namespace nrf52

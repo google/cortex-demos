@@ -23,6 +23,7 @@
 constexpr uint32_t usbd_base = 0x4002'7000;
 constexpr uint32_t usbd_enable = usbd_base + 0x500;
 constexpr uint32_t usbd_addr = usbd_base + 0x470;
+constexpr uint32_t usbd_pullup = usbd_base + 0x504;
 
 
 TEST_CASE("USBD Basics") {
@@ -33,6 +34,14 @@ TEST_CASE("USBD Basics") {
     usb.enable();
     CHECK(mem.get_value_at(usbd_enable) == 1);
 
+    CHECK(usb.get_irq_num() == 39);
+
     mem.set_value_at(usbd_addr, 56);
     CHECK(usb.get_addr() == 56);
+
+    usb.pullup(true);
+    CHECK(mem.get_value_at(usbd_pullup) == 1);
+
+    usb.pullup(false);
+    CHECK(mem.get_value_at(usbd_pullup) == 0);
 }

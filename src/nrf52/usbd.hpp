@@ -33,8 +33,18 @@ class USBD : public nrf52::Peripheral {
          */
         uint8_t get_addr() const;
 
+        /**
+         * @brief Enable/Disable 1.5kOhm pullup on D+.
+         *
+         * Enabling pullup signals presense of the device to the host.
+         * Disabling can be used to simulate physical disconnection
+         * of the device from software.
+         */
+        void pullup(bool enable);
+
     private:
         static constexpr auto kAddrOffset = 0x470;
+        static constexpr auto kPullupOffset = 0x504;
 };
 
 }  // namespace nrf52
