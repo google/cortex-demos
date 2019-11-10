@@ -24,7 +24,9 @@ def my_sources(base, port, mem_mang=None):
         'queue.c',
         'stream_buffer.c',
         'tasks.c',
-        'timers.c']
+        'timers.c',
+        'idle_task_memory.cpp',
+        ]
 
     core_srcs = [os.path.join(base, 'Source', f) for f in core_src_names]
 
