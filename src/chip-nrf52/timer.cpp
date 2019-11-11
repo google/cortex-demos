@@ -61,6 +61,26 @@ class RTC : public Timer, public nrf52::Peripheral {
             raw_write32(base_ + kPrescalerOffset, presc - 1);
         }
 
+        unsigned int request_rate(unsigned int req_rate) override {
+            constexpr unsigned int min_rate = kBaseRate / (1 << 12);
+            // This is the smallest possible rate right now.
+            if (req_rate < min_rate) {
+                return 0;
+            }
+
+            req_rate = MIN(kBaseRate, req_rate);
+
+            unsigned int presc = MIN(kBaseRate / req_rate, kMaxPrescaler);
+            unsigned int new_rate = kBaseRate / presc;
+            if (new_rate > req_rate) {
+                ++presc;
+                new_rate = kBaseRate / presc;
+            }
+
+            set_prescaler(presc);
+            return kBaseRate / presc;
+        }
+
         void enable_interrupts(uint32_t mask) override {
             if (!irq_handler_configured_) {
                 void (*handler)(void) = nullptr;
@@ -106,7 +126,8 @@ class RTC : public Timer, public nrf52::Peripheral {
         static constexpr auto kEvtenClrOffset = 0x348;
 
         static constexpr auto kPrescalerOffset = 0x508;
-        static constexpr auto kBaseRate = 32768;
+        static constexpr unsigned int kBaseRate = 32768;
+        static constexpr unsigned int kMaxPrescaler = (1 << 12);
 
         static constexpr uint32_t kIntenTick = (1 << 0);
 

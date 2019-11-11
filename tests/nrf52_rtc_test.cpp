@@ -65,6 +65,30 @@ TEST_CASE("RTC API") {
         CHECK(timer->get_rate() == (base_rate / 8));
     };
 
+    const auto& test_request_rate = [&mem](driver::Timer * timer, uint32_t base) {
+        (void)base;
+        constexpr unsigned int max_rate = 32768;
+        constexpr unsigned int min_rate = max_rate / (1 << 12);
+
+        CHECK(timer->request_rate(max_rate) == max_rate);
+        CHECK(timer->get_rate() == max_rate);
+
+        CHECK(timer->request_rate(min_rate) == min_rate);
+        CHECK(timer->get_rate() == min_rate);
+
+        auto new_rate = timer->request_rate(823);
+        CHECK(new_rate <= 823);
+        CHECK(timer->get_rate() == new_rate);
+
+        new_rate = timer->request_rate(200);
+        CHECK(new_rate <= 200);
+        CHECK(timer->get_rate() == new_rate);
+
+        CHECK(timer->request_rate(min_rate - 1) == 0);
+        CHECK(timer->request_rate(50000) == max_rate);
+        CHECK(timer->get_rate() == max_rate);
+    };
+
     const auto& test_enable_interrupt = [&mem](driver::Timer * timer, uint32_t base) {
         DummyEventHandler dummy_evt_handler;
         timer->add_event_handler(0, &dummy_evt_handler);
@@ -87,6 +111,7 @@ TEST_CASE("RTC API") {
         test_start_stop(rtc0, rtc0_base);
         test_prescaler(rtc0, rtc0_base);
         test_enable_interrupt(rtc0, rtc0_base);
+        test_request_rate(rtc0, rtc0_base);
     }
 
     SECTION("RTC1") {
@@ -98,6 +123,7 @@ TEST_CASE("RTC API") {
         test_start_stop(rtc1, rtc1_base);
         test_prescaler(rtc1, rtc1_base);
         test_enable_interrupt(rtc1, rtc1_base);
+        test_request_rate(rtc1, rtc1_base);
     }
 
     SECTION("RTC2") {
@@ -109,5 +135,6 @@ TEST_CASE("RTC API") {
         test_start_stop(rtc2, rtc2_base);
         test_prescaler(rtc2, rtc2_base);
         test_enable_interrupt(rtc2, rtc2_base);
+        test_request_rate(rtc2, rtc2_base);
     }
 }
