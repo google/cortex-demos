@@ -170,6 +170,24 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
             raw_write32(base_ + kPrescalerOffset, real_presc);
         }
 
+        unsigned int request_rate(unsigned int req_rate) override {
+            unsigned int presc = 10;
+            const auto min_rate = kInputRate / (1 << (presc - 1));
+            // This is the smallest possible rate right now.
+            if (req_rate < min_rate) {
+                return 0;
+            }
+
+            for (; presc > 0; --presc) {
+                if ((kInputRate / (1 << (presc - 1))) > req_rate) {
+                    break;
+                }
+            }
+
+            set_prescaler(presc);
+            return kInputRate / (1 << presc);
+        }
+
         void enable_tick_interrupt() override {}
 
 

@@ -55,7 +55,29 @@ class Timer : virtual public Peripheral {
         virtual void start() = 0;
         virtual void stop() = 0;
         virtual unsigned int get_rate() const = 0;
+
+        /**
+         * @brief Set timer prescaler value.
+         *
+         * Note, that interpretation of the prescaler value is implementation dependent.
+         * In some devices the real prescaler will be 2^presc or something else entirely.
+         *
+         * @param[presc] New prescaler value.
+         */
         virtual void set_prescaler(unsigned int presc) = 0;
+
+        /**
+         * @brief Set the timer rate to specified value.
+         *
+         * Note, that the actual rate may be lower than the requested one,
+         * if the timer can't provide such rate, for example.
+         * If the device can't provide any rate that is lower than requested one,
+         * it will return zero.
+         *
+         * @param[req_rate] Requested rate in Hz.
+         * @returns Actual rate set in Hz, or zero if no acceptable rates can be provided.
+         */
+        virtual unsigned int request_rate(unsigned int req_rate);
 
         virtual void enable_tick_interrupt() = 0;
 };

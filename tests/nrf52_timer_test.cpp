@@ -78,6 +78,25 @@ TEST_CASE("Timer API") {
                 auto expected_rate = 16 * 1000 * 1000 / (1 << presc);
                 CHECK(rate == expected_rate);
             }
+
+            const unsigned int rate_req = 1000'000;
+            auto new_rate = timer->request_rate(rate_req);
+            CHECK(new_rate > 0);
+            CHECK(new_rate == rate_req);
+
+            CHECK(mem.get_value_at(ct_base + 0x510) == 4);
+
+            // Request rate smaller than the minimum one
+            new_rate = timer->request_rate(25'000);
+            CHECK(new_rate == 0);
+
+            // Request largest possible rate
+            new_rate = timer->request_rate(16'000'000);
+            CHECK(new_rate == 16'000'000);
+
+            // Request even larger rate
+            new_rate = timer->request_rate(23'000'000);
+            CHECK(new_rate == 16'000'000);
         }
     }
 }
