@@ -31,7 +31,7 @@ TEST_CASE("Test Watchdog") {
 
     mem.set_value_at(wdt_mr, 0x3fff'2fff);
 
-    auto* wdt = driver::Timer::get_by_id(driver::Timer::ID::WDT0);
+    auto* wdt = driver::Timer::request_by_id(driver::Timer::ID::WDT0);
     REQUIRE(wdt);
 
     CHECK(wdt->get_irq_num() == 4);

@@ -50,7 +50,7 @@ class Timer : virtual public Peripheral {
             WDT6,
         };
 
-        static Timer* get_by_id(ID id);
+        static Timer* request_by_id(ID id);
 
         virtual void start() = 0;
         virtual void stop() = 0;

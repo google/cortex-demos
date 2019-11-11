@@ -60,7 +60,7 @@ class WDT : public Timer {
 
 }  // namespace
 
-Timer* Timer::get_by_id(Timer::ID id) {
+Timer* Timer::request_by_id(Timer::ID id) {
     if (id == Timer::ID::WDT0) {
         return &wdt0;
     }

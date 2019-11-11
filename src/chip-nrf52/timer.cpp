@@ -191,7 +191,7 @@ TimerCounter timer4{27};
 
 }  // namespace
 
-Timer* Timer::get_by_id(ID id) {
+Timer* Timer::request_by_id(ID id) {
     Timer* ret = nullptr;
     switch (id) {
     case ID::RTC0:

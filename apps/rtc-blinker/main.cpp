@@ -41,7 +41,7 @@ int main(void) {
 
     gpio_set_option(0, (1 << 17) | (1 << 18) | (1 << 19) | (1 << 20), GPIO_OPT_OUTPUT);
 
-    auto* rtc = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
+    auto* rtc = driver::Timer::request_by_id(driver::Timer::ID::RTC0);
 
     rtc->stop();
     rtc->set_prescaler(0xffd);

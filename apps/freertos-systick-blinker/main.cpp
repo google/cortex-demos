@@ -68,7 +68,7 @@ class BlinkerThread : public os::ThreadStatic<2 * configMINIMAL_STACK_SIZE> {
 unsigned int g_cpu_clock_hz;
 
 int main() {
-    auto* wdt = driver::Timer::get_by_id(driver::Timer::ID::WDT0);
+    auto* wdt = driver::Timer::request_by_id(driver::Timer::ID::WDT0);
     if (wdt) {
         wdt->stop();
     }

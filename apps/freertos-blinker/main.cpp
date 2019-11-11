@@ -44,7 +44,7 @@ extern "C" {
     void vPortSVCHandler(void);
 
     void vPortSetupTimerInterrupt(void) {
-        auto* rtc = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
+        auto* rtc = driver::Timer::request_by_id(driver::Timer::ID::RTC0);
         auto rate = rtc->get_rate();
         rtc->set_prescaler(rate / configTICK_RATE_HZ);
         rtc->add_event_handler(0, &rtc_tick_handler);

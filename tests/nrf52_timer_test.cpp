@@ -49,7 +49,7 @@ TEST_CASE("Timer API") {
 
     SECTION("Basic API") {
         for (unsigned timer_index = 0; timer_index < 5; ++timer_index) {
-            auto* timer = driver::Timer::get_by_id(timer_id[timer_index]);
+            auto* timer = driver::Timer::request_by_id(timer_id[timer_index]);
             REQUIRE(timer != nullptr);
             CHECK(timer->get_irq_num() == timer_irq[timer_index]);
 

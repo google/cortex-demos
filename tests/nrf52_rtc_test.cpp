@@ -80,7 +80,7 @@ TEST_CASE("RTC API") {
 
     SECTION("RTC0") {
         constexpr auto rtc0_base = 0x4000b000;
-        auto* rtc0 = driver::Timer::get_by_id(driver::Timer::ID::RTC0);
+        auto* rtc0 = driver::Timer::request_by_id(driver::Timer::ID::RTC0);
         REQUIRE(rtc0 != nullptr);
         CHECK(rtc0->get_irq_num() == 11);
 
@@ -91,7 +91,7 @@ TEST_CASE("RTC API") {
 
     SECTION("RTC1") {
         constexpr auto rtc1_base = 0x40011000;
-        auto* rtc1 = driver::Timer::get_by_id(driver::Timer::ID::RTC1);
+        auto* rtc1 = driver::Timer::request_by_id(driver::Timer::ID::RTC1);
         REQUIRE(rtc1 != nullptr);
         CHECK(rtc1->get_irq_num() == 17);
 
@@ -102,7 +102,7 @@ TEST_CASE("RTC API") {
 
     SECTION("RTC2") {
         constexpr auto rtc2_base = 0x40024000;
-        auto* rtc2 = driver::Timer::get_by_id(driver::Timer::ID::RTC2);
+        auto* rtc2 = driver::Timer::request_by_id(driver::Timer::ID::RTC2);
         REQUIRE(rtc2 != nullptr);
         CHECK(rtc2->get_irq_num() == 36);
 
