@@ -60,13 +60,16 @@ TEST_CASE("RTC API") {
 
         mem.set_value_at(base + 0x508, 3);
         CHECK(timer->get_rate() == (base_rate / 4));
+        CHECK(timer->get_base_rate() == base_rate);
 
         timer->set_prescaler(8);
         CHECK(timer->get_rate() == (base_rate / 8));
+        CHECK(timer->get_base_rate() == base_rate);
     };
 
     const auto& test_request_rate = [&mem](driver::Timer * timer, uint32_t base) {
         (void)base;
+        constexpr unsigned int base_rate = 0x8000;
         constexpr unsigned int max_rate = 32768;
         constexpr unsigned int min_rate = max_rate / (1 << 12);
 
@@ -75,6 +78,7 @@ TEST_CASE("RTC API") {
 
         CHECK(timer->request_rate(min_rate) == min_rate);
         CHECK(timer->get_rate() == min_rate);
+        CHECK(timer->get_base_rate() == base_rate);
 
         auto new_rate = timer->request_rate(823);
         CHECK(new_rate <= 823);
@@ -83,6 +87,7 @@ TEST_CASE("RTC API") {
         new_rate = timer->request_rate(200);
         CHECK(new_rate <= 200);
         CHECK(timer->get_rate() == new_rate);
+        CHECK(timer->get_base_rate() == base_rate);
 
         CHECK(timer->request_rate(min_rate - 1) == 0);
         CHECK(timer->request_rate(50000) == max_rate);

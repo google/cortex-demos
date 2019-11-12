@@ -72,11 +72,13 @@ TEST_CASE("Timer API") {
             timer->set_prescaler(235);
             CHECK(mem.get_value_at(ct_base + 0x510) == 9);
 
+            constexpr unsigned int base_rate = 16'000'000;
             for (unsigned presc = 0; presc < 10; ++presc) {
                 mem.set_value_at(ct_base + 0x510, presc);
                 auto rate = timer->get_rate();
                 auto expected_rate = 16 * 1000 * 1000 / (1 << presc);
                 CHECK(rate == expected_rate);
+                CHECK(timer->get_base_rate() == base_rate);
             }
 
             const unsigned int rate_req = 1000'000;
@@ -89,6 +91,7 @@ TEST_CASE("Timer API") {
             // Request rate smaller than the minimum one
             new_rate = timer->request_rate(25'000);
             CHECK(new_rate == 0);
+            CHECK(timer->get_base_rate() == base_rate);
 
             // Request largest possible rate
             new_rate = timer->request_rate(16'000'000);

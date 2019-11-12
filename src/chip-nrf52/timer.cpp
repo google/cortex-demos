@@ -60,6 +60,10 @@ class RTC : public Timer, public nrf52::Peripheral {
             return kBaseRate / ((presc & 0xfff) + 1);
         }
 
+        unsigned int get_base_rate() const override {
+            return kBaseRate;
+        }
+
         void set_prescaler(unsigned int presc) override {
             // TODO: debug assert that the timer is stopped
             raw_write32(base_ + kPrescalerOffset, presc - 1);
@@ -150,8 +154,6 @@ void rtc2_irq_handler() {
     rtc2.handle_events();
 }
 
-constexpr unsigned int kNumTimerEvents = 6;
-
 class TimerCounter : public Timer, public nrf52::Peripheral {
     public:
         enum Task {
@@ -176,6 +178,10 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
             unsigned int presc = raw_read32(base_ + kPrescalerOffset);
 
             return kInputRate / (1 << presc);
+        }
+
+        unsigned int get_base_rate() const override {
+            return kInputRate;
         }
 
         void set_prescaler(unsigned int presc) override {
@@ -209,6 +215,7 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
 
         static constexpr uint32_t kPrescalerOffset = 0x510;
 
+        static constexpr unsigned int kNumTimerEvents = 6;
         HandlerContainerT evt_handler_storage_{kNumTimerEvents, nullptr};
 
 };

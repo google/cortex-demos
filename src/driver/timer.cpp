@@ -23,4 +23,8 @@ unsigned int Timer::request_rate(unsigned int req_rate) {
     return 0;
 }
 
+unsigned int Timer::get_base_rate() const {
+    return get_rate();
+}
+
 }  // namespace driver

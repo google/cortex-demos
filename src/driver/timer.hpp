@@ -57,6 +57,14 @@ class Timer : virtual public Peripheral {
         virtual unsigned int get_rate() const = 0;
 
         /**
+         * @brief Get Timer's base rate in Hz.
+         *
+         * Presumably, the rate of the timer's input clock.
+         * @returns Timer's base rate in Hz.
+         */
+        virtual unsigned int get_base_rate() const;
+
+        /**
          * @brief Set timer prescaler value.
          *
          * Note, that interpretation of the prescaler value is implementation dependent.
