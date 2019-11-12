@@ -22,8 +22,6 @@
 
 #include <vector>
 
-typedef void (*evt_handler_func_t)(int);
-
 namespace driver {
 
 struct EventInfo {

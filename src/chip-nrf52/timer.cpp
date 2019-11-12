@@ -19,6 +19,7 @@
 #include "clk.h"
 #include "cutils.h"
 #include "memio.h"
+#include "nvic.h"
 #include "nrf52/clk.h"
 #include "nrf52/peripheral.hpp"
 #include "nrf52/periph_utils.hpp"
@@ -38,6 +39,9 @@ void rtc2_irq_handler();
 class RTC : public Timer, public nrf52::Peripheral {
     public:
         RTC(unsigned int id) : driver::Peripheral(periph::id_to_base(id), id, &evt_handler_storage_) {}
+        RTC(unsigned int id, irq_handler_func_t irq_handler) : driver::Peripheral(periph::id_to_base(id), id,
+                    &evt_handler_storage_),
+            irq_handler_{irq_handler} {}
 
         void start() override {
             if (!lfclk_started) {
@@ -83,21 +87,8 @@ class RTC : public Timer, public nrf52::Peripheral {
 
         void enable_interrupts(uint32_t mask) override {
             if (!irq_handler_configured_) {
-                void (*handler)(void) = nullptr;
-                switch (irq_n_) {
-                case 11:
-                    handler = rtc0_irq_handler;
-                    break;
-                case 17:
-                    handler = rtc1_irq_handler;
-                    break;
-                case 36:
-                    handler = rtc2_irq_handler;
-                    break;
-                }
-
-                if (handler) {
-                    set_irq_handler(handler);
+                if (irq_handler_) {
+                    set_irq_handler(irq_handler_);
                     irq_handler_configured_ = true;
                 }
             }
@@ -138,13 +129,14 @@ class RTC : public Timer, public nrf52::Peripheral {
         HandlerContainerT evt_handler_storage_{kNumRTCEvents, nullptr};
 
         bool irq_handler_configured_ = false;
+        irq_handler_func_t irq_handler_ = nullptr;
 };
 
 bool RTC::lfclk_started = 0;
 
-RTC rtc0{11};
-RTC rtc1{17};
-RTC rtc2{36};
+RTC rtc0{11, rtc0_irq_handler};
+RTC rtc1{17, rtc1_irq_handler};
+RTC rtc2{36, rtc2_irq_handler};
 
 void rtc0_irq_handler() {
     rtc0.handle_events();
@@ -210,7 +202,6 @@ class TimerCounter : public Timer, public nrf52::Peripheral {
         }
 
         void enable_tick_interrupt() override {}
-
 
     private:
         static constexpr unsigned kMaxPrescaler = 9;
