@@ -23,7 +23,7 @@ test_env = env
 test_lib = test_env.StaticLibrary(target='demos_mock', source=['mock_memio.cpp'])
 common_tests = Split(
         'memio_test.cpp memio_mock_test.cpp '
-        'peripheral_test.cpp syscontrol_test.cpp nvic_test.cpp os_init_test.cpp ')
+        'peripheral_test.cpp syscontrol_test.cpp nvic_test.cpp os_init_test.cpp systick_test.cpp')
 
 common_tests_objs = [test_env.Object(t) for t in common_tests]
 

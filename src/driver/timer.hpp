@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "driver/peripheral.hpp"
-
 #include <cstdint>
+
+#include "nvic.h"
+#include "driver/peripheral.hpp"
 
 namespace driver {
 
@@ -48,6 +49,8 @@ class Timer : virtual public Peripheral {
             WDT4,
             WDT5,
             WDT6,
+
+            SYSTICK,
         };
 
         static Timer* request_by_id(ID id);
@@ -91,3 +94,30 @@ class Timer : virtual public Peripheral {
 };
 
 }  // namespace driver
+
+/* TODO: Find better location for this driver */
+namespace arm {
+
+class SysTick : public driver::Timer {
+    public:
+        SysTick(unsigned int base_rate) : driver::Peripheral(0xe000'e010, IRQ_SYSTICK), base_rate_{base_rate} {}
+
+        unsigned int get_base_rate() const override;
+        void start() override;
+        void stop() override;
+        unsigned int get_rate() const override;
+        void set_prescaler(unsigned int presc) override;
+        unsigned int request_rate(unsigned int req_rate) override;
+        void enable_tick_interrupt() override;
+
+    private:
+        const unsigned int base_rate_;
+
+        static constexpr uint32_t kBaseAddr = 0xe000'e010;
+        static constexpr uint32_t kCsrAddr = kBaseAddr;
+        static constexpr uint32_t kRvrAddr = kBaseAddr + 4;
+        static constexpr uint32_t kCvrAddr = kBaseAddr + 8;
+        static constexpr uint32_t kCalibAddr = kBaseAddr + 12;
+};
+
+}  // namespace arm

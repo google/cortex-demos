@@ -15,6 +15,7 @@
 *******************************************************************************/
 
 #include "driver/timer.hpp"
+#include "memio.h"
 
 namespace driver {
 
@@ -27,4 +28,51 @@ unsigned int Timer::get_base_rate() const {
     return get_rate();
 }
 
+Timer* __attribute__((weak)) Timer::request_by_id(Timer::ID id) {
+    (void)id;
+    return nullptr;
+}
+
 }  // namespace driver
+
+namespace arm {
+
+unsigned int SysTick::get_base_rate() const {
+    return base_rate_;
+}
+
+void SysTick::start() {
+
+}
+
+void SysTick::stop() {
+
+}
+
+unsigned int SysTick::get_rate() const {
+    auto presc = raw_read32(kRvrAddr);
+
+    return presc == 0 ? 0 : (base_rate_ / presc);
+}
+
+void SysTick::set_prescaler(unsigned int presc) {
+    if (presc < (1 << 24)) {
+        raw_write32(kRvrAddr, presc);
+    }
+}
+
+unsigned int SysTick::request_rate(unsigned int req_rate) {
+    if (req_rate > base_rate_) {
+        return 0;
+    }
+
+    auto presc = base_rate_ / req_rate;
+    set_prescaler(presc);
+    return base_rate_ / presc;
+}
+
+void SysTick::enable_tick_interrupt() {
+
+}
+
+}  // arm
