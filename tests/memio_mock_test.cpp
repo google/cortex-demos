@@ -120,3 +120,13 @@ TEST_CASE("Test various stubs") {
     CHECK(mem.read32(0xa0) == 0xbadcafe);
     CHECK(mem.read32(0xa0) == 0x00550055);
 }
+
+TEST_CASE("Test Write One To Clear (W1C) Handler Stub") {
+    mock::Memory mem;
+
+    mock::W1CStub w1c;
+    mem.set_addr_io_handler(0x8000, &w1c);
+    mem.set_value_at(0x8000, 0xabed);
+    mem.write32(0x8000, 0xb0d);
+    CHECK(mem.get_value_at(0x8000) == 0xa0e0);
+}

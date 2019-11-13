@@ -258,6 +258,24 @@ class WriteSink : public IOHandlerStub {
 
 
 /**
+ * @brief Write One To Clear Handler.
+ *
+ * Instead of writing the specified value to the register,
+ * this handler will clear the bits set in written value, i.e.
+ * if the bit is set in the written value, it will be cleared
+ * in the value stored at specified address.
+ */
+class W1CStub : public IOHandlerStub {
+    public:
+        uint32_t write32(uint32_t addr, uint32_t old_value, uint32_t new_value) override {
+            (void)addr;
+
+            return old_value & (~new_value);
+        }
+};
+
+
+/**
  * @brief Virtual Memory IO handler for tests.
  *
  * The tests should treat this class as a singleton and use mock::get_global_memory() function
