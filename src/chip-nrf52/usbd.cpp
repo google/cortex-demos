@@ -28,4 +28,15 @@ void USBD::pullup(bool enable) {
     raw_write32(base_ + kPullupOffset, value);
 }
 
+uint32_t USBD::get_event_cause(enum EventCause mask, bool clear) {
+    uint32_t value = raw_read32(base_ + kEventCauseOffset);
+    value &= mask;
+
+    if (clear && value) {
+        raw_write32(base_ + kEventCauseOffset, value);
+    }
+
+    return value;
+}
+
 }  // namespace nrf52

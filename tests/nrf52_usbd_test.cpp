@@ -24,6 +24,7 @@ constexpr uint32_t usbd_base = 0x4002'7000;
 constexpr uint32_t usbd_enable = usbd_base + 0x500;
 constexpr uint32_t usbd_addr = usbd_base + 0x470;
 constexpr uint32_t usbd_pullup = usbd_base + 0x504;
+constexpr uint32_t usbd_eventcause = usbd_base + 0x400;
 
 
 TEST_CASE("USBD Basics") {
@@ -44,4 +45,40 @@ TEST_CASE("USBD Basics") {
 
     usb.pullup(false);
     CHECK(mem.get_value_at(usbd_pullup) == 0);
+
+    SECTION("USB Event Cause") {
+        uint32_t events = (1 << 11) | (1 << 8);
+        mem.set_value_at(usbd_eventcause, events);
+        mock::W1CStub w1c;
+        mem.set_addr_io_handler(usbd_eventcause, &w1c);
+
+        auto evt_result = usb.get_event_cause();
+        // All Events returned and cleared
+        CHECK(evt_result == events);
+        CHECK(mem.get_value_at(usbd_eventcause) == 0);
+
+        using evt = nrf52::USBD::EventCause;
+
+        mem.set_value_at(usbd_eventcause, events);
+        evt_result = usb.get_event_cause(evt::RESUME);
+        CHECK(evt_result == 0);
+        CHECK(mem.get_value_at(usbd_eventcause) == events);
+
+        // One event was read and cleared
+        evt_result = usb.get_event_cause(evt::READY);
+        CHECK(evt_result == evt::READY);
+        CHECK(mem.get_value_at(usbd_eventcause) == evt::SUSPEND);
+
+        // All events read, none cleared
+        mem.set_value_at(usbd_eventcause, events);
+        evt_result = usb.get_event_cause(evt::MASK_ALL, false);
+        CHECK(evt_result == events);
+        CHECK(mem.get_value_at(usbd_eventcause) == events);
+
+        // One event read, but not cleared
+        mem.set_value_at(usbd_eventcause, events);
+        evt_result = usb.get_event_cause(evt::READY, false);
+        CHECK(evt_result == evt::READY);
+        CHECK(mem.get_value_at(usbd_eventcause) == events);
+    }
 }
