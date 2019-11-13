@@ -118,6 +118,11 @@ class SysTick : public driver::Timer {
         static constexpr uint32_t kRvrAddr = kBaseAddr + 4;
         static constexpr uint32_t kCvrAddr = kBaseAddr + 8;
         static constexpr uint32_t kCalibAddr = kBaseAddr + 12;
+
+        static constexpr uint32_t kCsrCountFlag = (1 << 16);
+        static constexpr uint32_t kCsrClkSrc = (1 << 2);
+        static constexpr uint32_t kCsrTickInt = (1 << 1);
+        static constexpr uint32_t kCsrEnable = (1 << 0);
 };
 
 }  // namespace arm

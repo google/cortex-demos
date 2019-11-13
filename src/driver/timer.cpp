@@ -42,11 +42,13 @@ unsigned int SysTick::get_base_rate() const {
 }
 
 void SysTick::start() {
-
+    uint32_t current_value = raw_read32(kCsrAddr);
+    raw_write32(kCsrAddr, current_value | kCsrEnable);
 }
 
 void SysTick::stop() {
-
+    uint32_t current_value = raw_read32(kCsrAddr);
+    raw_write32(kCsrAddr, current_value & ~kCsrEnable);
 }
 
 unsigned int SysTick::get_rate() const {
@@ -72,7 +74,8 @@ unsigned int SysTick::request_rate(unsigned int req_rate) {
 }
 
 void SysTick::enable_tick_interrupt() {
-
+    uint32_t current_value = raw_read32(kCsrAddr);
+    raw_write32(kCsrAddr, current_value | kCsrTickInt);
 }
 
 }  // arm

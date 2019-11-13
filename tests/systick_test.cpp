@@ -20,6 +20,7 @@
 
 #include "mock_memio.hpp"
 
+#include "nvic.h"
 #include "driver/timer.hpp"
 
 constexpr uint32_t syst_csr = 0xe000'e010;
@@ -44,6 +45,7 @@ TEST_CASE("Test Systick API") {
     constexpr unsigned int systick_rate = 64'000'000;
     arm::SysTick systick(systick_rate);
     CHECK(systick.get_base_rate() == systick_rate);
+    CHECK(systick.get_irq_num() == IRQ_SYSTICK);
 
     systick.set_prescaler(64);
     CHECK(systick.get_rate() == systick_rate / 64);
@@ -57,4 +59,13 @@ TEST_CASE("Test Systick API") {
     CHECK(systick.get_rate() == 500);
 
     CHECK(systick.request_rate(systick_rate + 1) == 0);
+
+    systick.enable_tick_interrupt();
+    CHECK((mem.get_value_at(syst_csr) & (1 << 1)) > 0);
+
+    systick.start();
+    CHECK((mem.get_value_at(syst_csr) & (1 << 0)) > 0);
+
+    systick.stop();
+    CHECK((mem.get_value_at(syst_csr) & (1 << 0)) == 0);
 }
