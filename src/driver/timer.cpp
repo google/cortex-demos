@@ -37,11 +37,22 @@ Timer* __attribute__((weak)) Timer::request_by_id(Timer::ID id) {
 
 namespace arm {
 
+SysTick::SysTick() : driver::Peripheral(kBaseAddr, IRQ_SYSTICK), base_rate_{0} {
+    uint32_t calib = raw_read32(kCalibAddr);
+    if (calib) {
+        auto* rate = (const_cast<unsigned int*>(&base_rate_));
+        *rate = 100 * calib;
+    }
+}
+
 unsigned int SysTick::get_base_rate() const {
     return base_rate_;
 }
 
 void SysTick::start() {
+    if (base_rate_ == 0) {
+        __builtin_trap();
+    }
     uint32_t current_value = raw_read32(kCsrAddr);
     raw_write32(kCsrAddr, current_value | kCsrEnable);
 }

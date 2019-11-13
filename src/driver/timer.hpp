@@ -100,7 +100,8 @@ namespace arm {
 
 class SysTick : public driver::Timer {
     public:
-        SysTick(unsigned int base_rate) : driver::Peripheral(0xe000'e010, IRQ_SYSTICK), base_rate_{base_rate} {}
+        SysTick();
+        SysTick(unsigned int base_rate) : driver::Peripheral(kBaseAddr, IRQ_SYSTICK), base_rate_{base_rate} {}
 
         unsigned int get_base_rate() const override;
         void start() override;

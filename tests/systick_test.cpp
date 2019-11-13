@@ -42,30 +42,39 @@ TEST_CASE("Test Systick API") {
     auto& mem = mock::get_global_memory();
     mem.reset();
 
-    constexpr unsigned int systick_rate = 64'000'000;
-    arm::SysTick systick(systick_rate);
-    CHECK(systick.get_base_rate() == systick_rate);
-    CHECK(systick.get_irq_num() == IRQ_SYSTICK);
+    SECTION("Explicit Rate") {
+        constexpr unsigned int systick_rate = 64'000'000;
+        arm::SysTick systick(systick_rate);
+        CHECK(systick.get_base_rate() == systick_rate);
+        CHECK(systick.get_irq_num() == IRQ_SYSTICK);
 
-    systick.set_prescaler(64);
-    CHECK(systick.get_rate() == systick_rate / 64);
-    CHECK(mem.get_value_at(syst_rvr) == 64);
+        systick.set_prescaler(64);
+        CHECK(systick.get_rate() == systick_rate / 64);
+        CHECK(mem.get_value_at(syst_rvr) == 64);
 
-    systick.set_prescaler((1 << 25));
-    CHECK(systick.get_rate() == systick_rate / 64);
+        systick.set_prescaler((1 << 25));
+        CHECK(systick.get_rate() == systick_rate / 64);
 
-    CHECK(systick.request_rate(500) == 500);
-    CHECK(mem.get_value_at(syst_rvr) == systick_rate / 500);
-    CHECK(systick.get_rate() == 500);
+        CHECK(systick.request_rate(500) == 500);
+        CHECK(mem.get_value_at(syst_rvr) == systick_rate / 500);
+        CHECK(systick.get_rate() == 500);
 
-    CHECK(systick.request_rate(systick_rate + 1) == 0);
+        CHECK(systick.request_rate(systick_rate + 1) == 0);
 
-    systick.enable_tick_interrupt();
-    CHECK((mem.get_value_at(syst_csr) & (1 << 1)) > 0);
+        systick.enable_tick_interrupt();
+        CHECK((mem.get_value_at(syst_csr) & (1 << 1)) > 0);
 
-    systick.start();
-    CHECK((mem.get_value_at(syst_csr) & (1 << 0)) > 0);
+        systick.start();
+        CHECK((mem.get_value_at(syst_csr) & (1 << 0)) > 0);
 
-    systick.stop();
-    CHECK((mem.get_value_at(syst_csr) & (1 << 0)) == 0);
+        systick.stop();
+        CHECK((mem.get_value_at(syst_csr) & (1 << 0)) == 0);
+    }
+
+    SECTION("Calibration Value based SysTick") {
+        // Calibration value for 32MHz reference clock.
+        mem.set_value_at(syst_calib, 0x4e200);
+        arm::SysTick systick;
+        CHECK(systick.get_base_rate() == 32'000'000);
+    }
 }
