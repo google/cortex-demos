@@ -58,11 +58,16 @@ class WDT : public Timer {
         static constexpr uint32_t kMRWdtDis = (1 << 15);
 } wdt0;
 
+// FIXME: SAM4S systick clock source is far more complicated than this...
+arm::SysTick systick;
+
 }  // namespace
 
 Timer* Timer::request_by_id(Timer::ID id) {
     if (id == Timer::ID::WDT0) {
         return &wdt0;
+    } else if (id == Timer::ID::SYSTICK) {
+        return &systick;
     }
     return nullptr;
 }

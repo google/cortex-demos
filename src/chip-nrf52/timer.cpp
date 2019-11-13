@@ -226,6 +226,9 @@ TimerCounter timer2{10};
 TimerCounter timer3{26};
 TimerCounter timer4{27};
 
+// FIXME: Get the value from the board configuration.
+arm::SysTick systick(64'000'000);
+
 }  // namespace
 
 Timer* Timer::request_by_id(ID id) {
@@ -254,6 +257,9 @@ Timer* Timer::request_by_id(ID id) {
         break;
     case ID::TIMER4:
         ret = &timer4;
+        break;
+    case ID::SYSTICK:
+        ret = &systick;
         break;
     default:
         break;

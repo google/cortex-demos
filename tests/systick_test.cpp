@@ -32,10 +32,8 @@ TEST_CASE("Test SysTick Timer Initialization") {
     auto& mem = mock::get_global_memory();
     mem.reset();
 
-    /* TODO
     auto* systick = driver::Timer::request_by_id(driver::Timer::ID::SYSTICK);
     REQUIRE(systick != nullptr);
-    */
 }
 
 TEST_CASE("Test Systick API") {

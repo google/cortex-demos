@@ -28,11 +28,6 @@ unsigned int Timer::get_base_rate() const {
     return get_rate();
 }
 
-Timer* __attribute__((weak)) Timer::request_by_id(Timer::ID id) {
-    (void)id;
-    return nullptr;
-}
-
 }  // namespace driver
 
 namespace arm {
@@ -89,4 +84,23 @@ void SysTick::enable_tick_interrupt() {
     raw_write32(kCsrAddr, current_value | kCsrTickInt);
 }
 
-}  // arm
+}  // namespace arm
+
+
+namespace driver {
+
+namespace {
+
+arm::SysTick g_systick;
+
+}  // namespace
+
+Timer* __attribute__((weak)) Timer::request_by_id(Timer::ID id) {
+    if (id == Timer::ID::SYSTICK) {
+        return &g_systick;
+    }
+
+    return nullptr;
+}
+
+}  // namespace driver
