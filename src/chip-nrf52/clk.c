@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2018 Google LLC
+    Copyright 2018,2019 Google LLC
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@
 
 #define LFCLKSTAT       (CLOCK_BASE + 0x418)
 #define LFCLKSTAT_RUNNING     (1 << 16)
+
+#define HFCLKSTAT   (CLOCK_BASE + 0x40c)
+#define HFCLKSTAT_HFXO  (1 << 0)
+#define HFCLKSTAT_STATE  (1 << 1)
 
 #define TASK(n)     (CLOCK_BASE + ((n) * 4))
 
@@ -84,11 +88,15 @@ int clk_request(int clock_id) {
         ret = 0;
         break;
     case NRF52_HFCLK_RC:
-    case NRF52_HFCLK_XTAL:
-        /* FIXME: Waht if this oscillator already running? */
-        raw_write32(TASK(TASK_HFCLKSTART), 1);
-        busy_wait_and_clear_event(EVT_HFCLKSTARTED);
-        ret = 0;
+    case NRF52_HFCLK_XTAL: {
+            /* Check if oscillator already running */
+            const uint32_t hfclk_state = raw_read32(HFCLKSTAT);
+            if (! hfclk_state & HFCLKSTAT_HFXO) {
+                raw_write32(TASK(TASK_HFCLKSTART), 1);
+                busy_wait_and_clear_event(EVT_HFCLKSTARTED);
+            }
+            ret = 0;
+        }
         break;
     }
 
