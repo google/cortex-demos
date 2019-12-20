@@ -27,8 +27,8 @@ namespace driver {
 struct EventInfo {
     int irq_n;
     int evt_id;
-    void* src;
-    void* data;
+    volatile void* src;
+    const void* data;
 };
 
 class EventHandler {
