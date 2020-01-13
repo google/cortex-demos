@@ -111,7 +111,10 @@ for chip in supported_chips:
                exports=dict(hwenv=chip_hwenv, native_env=native_env))
 
 test_env = native_env.Clone()
-test_env.AppendUnique(LIBPATH='#/src', CPPPATH='#')
+test_env.AppendUnique(LIBPATH='#/src', CPPPATH=[
+    '#', os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'include'),
+    os.path.join('#', 'third_party', 'FreeRTOS', 'Source', 'portable', 'GCC', 'mock'),
+    ])
 
 for chip in supported_chips:
     chip_test_env = test_env.Clone()
