@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <list>
 #include <functional>
+#include <type_traits>
 
 namespace mock {
 
@@ -24,8 +26,21 @@ template<class R, class... Args>
 class FunctionStub {
     public:
         FunctionStub() {}
+        FunctionStub(const std::function<R(Args...)>& f) {
+            (void)f;
+        }
 
         R operator()(Args... args) {
+            if (handler_) {
+                return handler_(args...);
+            }
+
+            if (!rv_list_.empty()) {
+                R result{*rv_list_.cbegin()};
+                rv_list_.pop_front();
+                return result;
+            }
+
             if (rv_initialized_) {
                 return return_value_;
             }
@@ -38,9 +53,22 @@ class FunctionStub {
             rv_initialized_ = true;
         }
 
+        void push_return_value(const R& rv) {
+            rv_list_.emplace_back(rv);
+        }
+
+        void set_handler(std::function<R(Args...)> handler) {
+            handler_ = handler;
+        }
+
     private:
         R return_value_;
         bool rv_initialized_ = false;
+
+        std::list<R> rv_list_;
+        std::function<R(Args...)> handler_;
+
+        static_assert(std::is_copy_constructible<R>::value, "Return value must be copy constructible");
 };
 
 }  // namespace mock
