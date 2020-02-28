@@ -8,4 +8,6 @@ run_*_tests
 *.bin
 build/*
 ctags
-docs/*
+doxygen-docs/*
+*.png
+*.svg
