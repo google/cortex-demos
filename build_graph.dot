@@ -1,0 +1,77 @@
+digraph {
+    node [shape="box"];
+    subgraph envs {
+        node [shape="diamond", style="filled", fillcolor="lightblue"];
+        target_env;
+        target_env_1[label="target_env"];
+        host_env;
+        test_env;
+        test_env_2[label="test_env"];
+        host_env_1[label="host_env"];
+        test_env_1[label="test_env"];
+        test_env_1 -> host_env_1[arrowhead="diamond"]; // Inherits
+    }
+
+    subgraph artefacts {
+        node [shape="box3d", style="filled"];
+        demos_native_SoC[fillcolor="lawngreen"];
+        demos_SoC[fillcolor="limegreen"];
+        run_all_tests_SoC[fillcolor="lawngreen"];
+        demos_mock_lib[fillcolor="lawngreen"];
+        application[label="app.{hex,elf}", fillcolor="limegreen"];
+    }
+
+    subgraph sources {
+        node [style="filled", fillcolor="burlywood"];
+        chip_spec[label="chip-SoC/"];
+        chip_mock[label="chip-nativetest/chip.h"];
+        drivers_comm[label="drivers/"];
+        oscore[label="core/"];
+        freertos_mocks[label="FreeRTOS Mock"];
+        mmio_mock[label="MMIO Mock"];
+        mmio_arm[label="MMIO ARM"];
+
+        common_tests[label="Common Tests"];
+        SoC_tests[label="SoC Tests"];
+        // Used only for board right now
+        SoC_mocks[label="SoC Mocks"];
+        test_runner[label="test_runner.cpp"];
+        freertos[label="FreeRTOS"];
+        freertos_config[label="FreeRTOSConfig.h"];
+
+        app_src;
+    }
+
+    // From src/Sconscript
+    chip_spec -> target_env;
+    drivers_comm -> target_env;
+    oscore -> target_env;
+    mmio_arm -> target_env;
+    target_env -> demos_SoC;
+
+    chip_mock -> host_env;
+    chip_spec -> host_env;
+    drivers_comm -> host_env;
+    oscore -> host_env;
+    host_env -> demos_native_SoC;
+
+    // tests/Sconscript
+    freertos_mocks -> test_env_2;
+    mmio_mock -> test_env_2;
+    test_env_2 -> demos_mock_lib;
+
+    demos_native_SoC -> test_env;
+    demos_mock_lib -> test_env;
+    common_tests -> test_env;
+    SoC_tests -> test_env;
+    SoC_mocks -> test_env;
+    test_runner -> test_env;
+    test_env -> run_all_tests_SoC;
+
+    // Applications
+    freertos -> target_env_1;
+    freertos_config -> target_env_1;
+    demos_SoC -> target_env_1;
+    app_src -> target_env_1;
+    target_env_1 -> application;
+}
